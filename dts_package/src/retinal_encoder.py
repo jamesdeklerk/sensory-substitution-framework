@@ -80,6 +80,7 @@ def depthCallback(depth_data):
 
 def retinalEncoder():
     rospy.init_node('retinal_encoder', anonymous=True)
+    print('NODE RUNNING: retinal_encoder')
 
     # Get depth image from depth camera
     rospy.Subscriber("camera/depth/image", Image, depthCallback)
