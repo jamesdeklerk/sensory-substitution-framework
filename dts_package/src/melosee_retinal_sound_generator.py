@@ -3,6 +3,15 @@
 import math
 import numpy as np
 
+# normalize value in [min_output, max_output]
+def normalize(value, original_min, original_max, min_output, max_output):
+
+    # normalize value in [0, 1]
+    normalized_in_zero_one = (value - original_min) / ((original_max - original_min) * 1.0)
+
+    # normalize value in [min_output, max_output]
+    return ((max_output - min_output) * normalized_in_zero_one) + min_output
+
 # calculate A_i
 # input Act_i which is normalized between 0 and 1
 # output is 0.001 to 1.0 relative to the inputs of 0 to 1
@@ -10,12 +19,14 @@ def calc_sound_intensity(activity):
     return 10.0 ** (-3.0 * (1.0 - activity))
 
 # calculate P_i_l
-# output is 0.5011872336272722 to 1.9952623149688795 relative to the inputs of 1 to -1
+# inputs of 1 (right) to -1 (left)
+# output is 0.5011872336272722 to 1.9952623149688795 relative to the inputs of 1 (right) to -1 (left)
 def calc_ILD_left(horizontal_position):
     return 10.0 ** ((-3.0 * horizontal_position) / 10.0)
 
 # calculate P_i_r
-# output is 1.9952623149688795 to 0.5011872336272722 relative to the inputs of 1 to -1
+# inputs of 1 (right) to -1 (left)
+# output is 1.9952623149688795 to 0.5011872336272722 relative to the inputs of 1 (right) to -1 (left)
 def calc_ILD_right(horizontal_position):
     return 10.0 ** ((3.0 * horizontal_position) / 10.0)
 
@@ -26,11 +37,19 @@ def calca():
 
     # for each neuron 
     for i in xrange(N_RF):
+
+        # From retinal encoder
         Act_i = 0
+
+        # Position of sound source from left (-1) to right (1)
         horizontal_position = 0
-        A_i = calc_sound_intensity(Act_i)
+
+        # A_i is sound source intensity - which ranges from -60 dB to 0 dB, but output is 0.001 to 1.0???
+        A_i = calc_sound_intensity(Act_i) 
+
         P_i_l = calc_ILD_left(horizontal_position)
         P_i_r = calc_ILD_right(horizontal_position)
+        
         f_i = 0
         w_i = 2 * math.pi * f_i
         sum_left = sum_left + (A_i * P_i_l * math.sin())
@@ -40,6 +59,8 @@ def calca():
 
 def main():
     x = 1.0
+
+    print normalize(1, 0, 1, -12, 8)
 
 
 if __name__ == '__main__':

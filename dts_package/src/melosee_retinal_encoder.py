@@ -222,7 +222,7 @@ def main():
     # RF_map = setup_RF_map(image_height, image_width, 2,1)
     # draw_RF_map(depth_image, RF_map, 1, 1)
 
-    RF_map = setup_RF_map(image_height, image_width, 9, 9)
+    RF_map = setup_RF_map(image_height, image_width, 8, 8)
 
     sampled_pixels_map = setup_sampled_pixels_map(image_height, image_width, RF_map, 10)
     draw_sampled_pixels_map(depth_image, sampled_pixels_map, RF_map, 2, 2, (0,0,255), (255,0,0))
