@@ -185,6 +185,7 @@ def draw_sampled_pixels_map(image, sampled_pixels_map, RF_map, circle_radius, li
 # The activity act_i of the neuron i (a set of p pixels with luminance l_ik for the receptive field RF_i),
 # is normalized into the interval [0, 1] using the following function:
 #           act_i = (1/(255 * p))*sum   # where sum the sum from 1 to p of the pixel luminance values
+# TODO: convert output to be in [0, 1] 
 def calcNeuronActivity(positions_of_sampled_pixels, image):
 
     # Example input:
