@@ -223,11 +223,61 @@ def calcNeuronActivity(positions_of_sampled_pixels, image):
     # Returns neuron activity
     return sum / number_of_pixels
 
+# TODO: make sure youre doing the x and y correctly
+def run_melosee(depth_image, sampled_pixels_map):
+    DEFAULT_FAR_DEPTH = 100
+
+    output_image_width = len(sampled_pixels_map[0]) # columns
+    output_image_height = len(sampled_pixels_map) # rows
+    num_samples_per_RF = len(sampled_pixels_map[0][0])
+
+    output_image_array = []
+
+    for row in xrange(output_image_height):
+        # add new row
+        output_image_array.append([])
+        for column in xrange(output_image_width):
+
+            total = 0.0
+            count = 0.0
+
+            # calc average 
+            for sample in xrange(num_samples_per_RF):
+                cur_sample = sampled_pixels_map[row][column][sample]
+                x = cur_sample[0]
+                y = cur_sample[1]
+                cur_sample_depth = depth_image[y][x]
+                if not np.isnan(cur_sample_depth):
+                    total = total + cur_sample_depth
+                    count = count + 1.0
+
+            RF_depth = 0
+            if not count == 0:
+                RF_depth = total / count
+            else:
+                RF_depth = DEFAULT_FAR_DEPTH
+
+            # add depth info to appropriate column
+            output_image_array[row].append(RF_depth)
+
+    # Create image from the image array
+    # output_image_array = [[depth_image[30][30],depth_image[30][610]],[depth_image[450][30],depth_image[450][610]]]
+    output_image = np.array(output_image_array, dtype=np.float32)
+    
+    return output_image
+
+            
+
+                
+
+
+    
+
 def depthCallback(depth_data):
     depth_image = bridge.imgmsg_to_cv2(depth_data, desired_encoding="32FC1")
 
     # log out the distance to a specific point
-    rospy.loginfo('Distance at 30x, 30y pixel: {}m'.format(depth_image[30][30]))
+    # rospy.loginfo('Distance at 30x, 30y pixel: {}m'.format(depth_image[30][30]))
 
     # image -> output image
     # 640 x 480 -> 9 x 9
@@ -243,12 +293,9 @@ def depthCallback(depth_data):
         RF_map = setup_RF_map(depth_image_height, depth_image_width, output_image_height, output_image_width)
         num_samples_per_RF = 10
         sampled_pixels_map = setup_sampled_pixels_map(depth_image_height, depth_image_width, RF_map, num_samples_per_RF)
-
-    output_image = draw_sampled_pixels_map(depth_image, sampled_pixels_map, RF_map, 2, 2, (0, 0, 255), (255, 0, 0))
-
-    # Create image from the image array
-    # output_image_array = [[depth_image[30][30],depth_image[30][610]],[depth_image[450][30],depth_image[450][610]]]
-    #output_image = np.array(output_image_array, dtype=np.float32)
+    
+    output_image = run_melosee(depth_image, sampled_pixels_map)
+    
     image_pub.publish(bridge.cv2_to_imgmsg(output_image, "32FC1"))
 
 def retinalEncoder():
