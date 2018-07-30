@@ -1,10 +1,25 @@
+#!/usr/bin/env python
+
 # pip install opencv-python
 # pip install numpy
 # pip install matplotlib
 
 import math
-import numpy as np
+import roslib
+import sys
+import rospy
 import cv2
+import numpy as np
+from std_msgs.msg import String 
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge, CvBridgeError
+
+
+image_pub = rospy.Publisher("retinal_encoded_image",Image, queue_size=2)
+counter = 0
+bridge = CvBridge()
+RF_map = None
+sampled_pixels_map = None
 
 # C:\Users\s211114405\Downloads\fw\new.bin
 
@@ -180,7 +195,8 @@ def draw_sampled_pixels_map(image, sampled_pixels_map, RF_map, circle_radius, li
                 cv2.circle(image, sampled_pixels_map[row][column][sample],
                         circle_radius, circle_color, line_width)
 
-    cv2.imshow('image', image)
+    # cv2.imshow('image', image)
+    return image
 
 # The activity act_i of the neuron i (a set of p pixels with luminance l_ik for the receptive field RF_i),
 # is normalized into the interval [0, 1] using the following function:
@@ -207,34 +223,43 @@ def calcNeuronActivity(positions_of_sampled_pixels, image):
     # Returns neuron activity
     return sum / number_of_pixels
 
+def depthCallback(depth_data):
+    depth_image = bridge.imgmsg_to_cv2(depth_data, desired_encoding="32FC1")
 
-def main():
+    # log out the distance to a specific point
+    rospy.loginfo('Distance at 30x, 30y pixel: {}m'.format(depth_image[30][30]))
 
-    image_height = len(depth_image)
-    image_width = len(depth_image[0])
+    # image -> output image
+    # 640 x 480 -> 9 x 9
+    depth_image_width = len(depth_image[0])
+    depth_image_height = len(depth_image)
+    output_image_width = 9
+    output_image_height = 9
 
-    # setup window and display image
-    cv2.namedWindow('image', cv2.WINDOW_NORMAL)
-    cv2.resizeWindow('image', int(image_width * 0.8), int(image_height * 0.8))
-    cv2.moveWindow('image', 0, 0)
-    cv2.imshow('image', depth_image)
+    # setup sampled_pixels_map if it wasn't setup
+    global RF_map
+    global sampled_pixels_map
+    if sampled_pixels_map == None:
+        RF_map = setup_RF_map(depth_image_height, depth_image_width, output_image_height, output_image_width)
+        num_samples_per_RF = 10
+        sampled_pixels_map = setup_sampled_pixels_map(depth_image_height, depth_image_width, RF_map, num_samples_per_RF)
 
-    # RF_map = setup_RF_map(image_height, image_width, 25, 25)
-    # RF_map = setup_RF_map(image_height, image_width, 2,1)
-    # draw_RF_map(depth_image, RF_map, 1, 1)
+    output_image = draw_sampled_pixels_map(depth_image, sampled_pixels_map, RF_map, 2, 2, (0, 0, 255), (255, 0, 0))
 
-    RF_map = setup_RF_map(image_height, image_width, 8, 8)
+    # Create image from the image array
+    # output_image_array = [[depth_image[30][30],depth_image[30][610]],[depth_image[450][30],depth_image[450][610]]]
+    #output_image = np.array(output_image_array, dtype=np.float32)
+    image_pub.publish(bridge.cv2_to_imgmsg(output_image, "32FC1"))
 
-    sampled_pixels_map = setup_sampled_pixels_map(image_height, image_width, RF_map, 10)
-    draw_sampled_pixels_map(depth_image, sampled_pixels_map, RF_map, 2, 2, (0,0,255), (255,0,0))
+def retinalEncoder():
+    rospy.init_node('melosee_retinal_encoder', anonymous=True)
+    print('NODE RUNNING: melosee_retinal_encoder')
 
-    draw_RF_map(depth_image, RF_map, 2, 2, (0, 255, 0))
+    # Get depth image from depth camera
+    rospy.Subscriber("camera/depth/image", Image, depthCallback)
 
-    # click Esc key (with one of the image windows in focus) to stop
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-    exit()
+    rospy.spin()
 
 
 if __name__ == '__main__':
-    main()
+    retinalEncoder()
