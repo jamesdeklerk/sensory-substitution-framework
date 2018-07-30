@@ -266,12 +266,7 @@ def run_melosee(depth_image, sampled_pixels_map):
     
     return output_image
 
-            
 
-                
-
-
-    
 
 def depthCallback(depth_data):
     depth_image = bridge.imgmsg_to_cv2(depth_data, desired_encoding="32FC1")
@@ -280,11 +275,11 @@ def depthCallback(depth_data):
     # rospy.loginfo('Distance at 30x, 30y pixel: {}m'.format(depth_image[30][30]))
 
     # image -> output image
-    # 640 x 480 -> 9 x 9
+    # 640 x 480 -> 8 x 8
     depth_image_width = len(depth_image[0])
     depth_image_height = len(depth_image)
-    output_image_width = 9
-    output_image_height = 9
+    output_image_width = 8
+    output_image_height = 8
 
     # setup sampled_pixels_map if it wasn't setup
     global RF_map
