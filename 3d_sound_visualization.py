@@ -10,6 +10,9 @@ import pyqtgraph.opengl as gl
 import numpy as np
 import time
 import sys
+import math
+
+INVERT_X = -1
 
 class Window(QtGui.QWidget):
 
@@ -19,18 +22,27 @@ class Window(QtGui.QWidget):
         self.speakers = []
 
         self.view_widget = gl.GLViewWidget(self)
-        self.view_widget.setCameraPosition(distance=50, elevation=30, azimuth=0)
+        # Setting the Viewpoint with Azimuth and Elevation
+        # http://matlab.izmiran.ru/help/techdoc/visualize/chview3.html
+        self.view_widget.setCameraPosition(distance=50, elevation=-70, azimuth=95)
         self.view_widget.installEventFilter(self)
 
         layout = QtGui.QVBoxLayout(self)
         layout.addWidget(self.view_widget)
 
-        self.setup_grid()
+        # self.setup_grid()
+        self.setup_xyz_axis(self.view_widget, 3, 5)
+
+        H_FoV = 70.0 * (math.pi / 180.0)
+        V_FoV = 45.0 * (math.pi / 180.0)
+        self.setup_view_box(self.view_widget, 3.0, V_FoV, H_FoV, 15.0)
 
         head_mesh_data = gl.MeshData.sphere(rows=10, cols=10)
         head = gl.GLMeshItem(meshdata=head_mesh_data, smooth=True, shader='shaded', glOptions='opaque')
         head.translate(0, 0, 0)
         self.view_widget.addItem(head)
+
+        self.calc_pos()
 
         num_x = 10
         num_y = 10
@@ -63,7 +75,66 @@ class Window(QtGui.QWidget):
         z_grid.scale(1,1,1)
         z_grid.rotate(90, 1, 0, 0)
         self.view_widget.addItem(z_grid)
-    
+
+    def setup_xyz_axis(self, view_widget, axis_line_width, axis_length):
+        # Line drawing example
+        # http://www.pyqtgraph.org/downloads/0.10.0/pyqtgraph-0.10.0-deb/pyqtgraph-0.10.0/examples/GLLinePlotItem.py
+        
+        # red = x axis
+        x_axis_line_data = np.array([[0.0, 0.0, 0.0],[axis_length * INVERT_X, 0.0, 0.0]])
+        x_axis_line_color = (1.0, 0.0, 0.0, 1.0) # color = (r,g,b,a)
+        x_axis = gl.GLLinePlotItem(pos=x_axis_line_data, width=axis_line_width, color=x_axis_line_color)
+        view_widget.addItem(x_axis)
+
+        # green = y axis
+        y_axis_line_data = np.array([[0.0, 0.0, 0.0],[0.0, axis_length, 0.0]])
+        y_axis_line_color = (0.0, 1.0, 0.0, 1.0) # color = (r,g,b,a)
+        y_axis = gl.GLLinePlotItem(pos=y_axis_line_data, width=axis_line_width, color=y_axis_line_color)
+        view_widget.addItem(y_axis)
+
+        # blue = z axis
+        z_axis_line_data = np.array([[0.0, 0.0, 0.0],[0.0, 0.0, axis_length]])
+        z_axis_line_color = (0.0, 0.0, 1.0, 1.0) # color = (r,g,b,a)
+        z_axis = gl.GLLinePlotItem(pos=z_axis_line_data, width=axis_line_width, color=z_axis_line_color)
+        view_widget.addItem(z_axis)
+
+    def calc_pos(self):
+        # given angle and depth, calc x and y
+        
+        test = [(100, 30), (20, 20)]
+        test_fun = lambda data: data[0] * math.sin(data[1])
+        print list(map(test_fun, test))
+
+        return 0
+
+    def setup_view_box(self, view_widget, line_width, V_FoV, H_FoV, depth):
+
+        line_color = (1.0, 1.0, 1.0, 1.0) # color = (r,g,b,a)
+        x_pos = depth * math.sin(H_FoV / 2.0)
+        y_pos = depth * math.sin(V_FoV / 2.0)
+
+        # create the line data
+        top_right_line_data = np.array([[0.0, 0.0, 0.0], [x_pos * INVERT_X, y_pos, depth]])
+        top_left_line_data = np.array([[0.0, 0.0, 0.0], [-x_pos * INVERT_X, y_pos, depth]])
+        bottom_right_line_data = np.array([[0.0, 0.0, 0.0], [x_pos * INVERT_X, -y_pos, depth]])
+        bottom_left_line_data = np.array([[0.0, 0.0, 0.0], [-x_pos * INVERT_X, -y_pos, depth]])
+        # connecting lines
+        box_data = np.array([[x_pos * INVERT_X, y_pos, depth], [-x_pos * INVERT_X, y_pos, depth], [-x_pos * INVERT_X, -y_pos, depth], [x_pos * INVERT_X, -y_pos, depth], [x_pos * INVERT_X, y_pos, depth]])
+
+        # create the lines
+        top_right_line = gl.GLLinePlotItem(pos=top_right_line_data, width=line_width, color=line_color)
+        top_left_line = gl.GLLinePlotItem(pos=top_left_line_data, width=line_width, color=line_color)
+        bottom_right_line = gl.GLLinePlotItem(pos=bottom_right_line_data, width=line_width, color=line_color)
+        bottom_left_line = gl.GLLinePlotItem(pos=bottom_left_line_data, width=line_width, color=line_color)
+        box = gl.GLLinePlotItem(pos=box_data, width=line_width, color=line_color)
+        
+        # add the lines to the view
+        view_widget.addItem(top_right_line)
+        view_widget.addItem(top_left_line)
+        view_widget.addItem(bottom_right_line)
+        view_widget.addItem(bottom_left_line)
+        view_widget.addItem(box)
+
     def get_position(self, GLMeshItem):
         transform = GLMeshItem.transform()
         x = transform.row(0).w()
