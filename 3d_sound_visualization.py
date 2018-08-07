@@ -14,6 +14,10 @@ import math
 
 INVERT_X = -1
 count = 0
+H_FoV = 70.0 * (math.pi / 180.0)
+V_FoV = 45.0 * (math.pi / 180.0)
+image_width = 10
+image_height = 10
 
 class Window(QtGui.QWidget):
 
@@ -36,8 +40,6 @@ class Window(QtGui.QWidget):
         # self.setup_grid()
         self.setup_xyz_axis(self.view_widget, 3, 5)
 
-        H_FoV = 70.0 * (math.pi / 180.0)
-        V_FoV = 45.0 * (math.pi / 180.0)
         self.setup_view_box(self.view_widget, 3.0, V_FoV, H_FoV, 15.0)
 
         head_mesh_data = gl.MeshData.sphere(rows=10, cols=10)
@@ -45,19 +47,57 @@ class Window(QtGui.QWidget):
         head.translate(0, 0, 0)
         self.view_widget.addItem(head)
 
-        self.calc_pos()
-
-        num_x = 9
-        num_y = 9
-        for x in xrange(num_x):
+        for x in xrange(image_width):
             self.speakers.append([])
-            for y in xrange(num_y):
+            for y in xrange(image_height):
                 self.speakers[x].append(self.add_speaker(x, y, 5, 0.5))
 
         # TODO: calculate angles
         # ...
         # self.x_angles
         # self.y_angles
+        distance_to_near_plane = 0.5
+        pixel_width = self.calc_pixel_size(distance_to_near_plane, H_FoV, image_width)
+        pixel_height = self.calc_pixel_size(distance_to_near_plane, V_FoV, image_height)
+        for x in xrange(image_width):
+            self.x_angles.append(self.calc_angle(distance_to_near_plane, pixel_width, x))
+        for y in xrange(image_height):
+            self.y_angles.append(self.calc_angle(distance_to_near_plane, pixel_height, y))
+
+
+    # For pixel width:
+    # - FoV = Horizontal FoV
+    # - image_size = image width
+    # For pixel height
+    # - FoV = Vertical FoV
+    # - image_size = image height
+    def calc_pixel_size(self, distance_to_near_plane, FoV, image_size):
+        return ((2.0 * (distance_to_near_plane * 1.0)) * math.tan(FoV / 2.0)) / image_size
+
+    # For vertical
+    # - pixel_size = pixel height
+    # For horizontal
+    # - pixel_size = pixel width
+    # pixel_number = i-th pixel from the centre of the image (starting at 1)
+    def calc_angle(self, distance_to_near_plane, pixel_size, pixel_number):
+        # if odd number of pixels, add half pixel width?
+        return math.atan(((pixel_size * pixel_number * 1.0) - (pixel_size / 2.0)) / (distance_to_near_plane * 1.0))
+
+    # Calculate projected position for x or y
+    # depth is depth along ray
+    def calc_pos_x_or_y(self, depth, angle):
+        return depth * math.sin(angle)
+
+    # Always calculated according to the x-axis
+    # depth is depth along ray
+    def calc_pos_z(self, depth, angle):
+        return depth * math.cos(angle)
+
+    def calc_projected_xyz(self, depth, x_th_pixel, y_th_pixel):
+        x = self.calc_pos_x_or_y(depth, self.x_angles[x_th_pixel - 1])
+        y = self.calc_pos_x_or_y(depth, self.y_angles[y_th_pixel - 1])
+        z = 5
+        return (x, y, z)
 
     def start(self):
         if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
@@ -104,15 +144,6 @@ class Window(QtGui.QWidget):
         z_axis_line_color = (0.0, 0.0, 1.0, 1.0) # color = (r,g,b,a)
         z_axis = gl.GLLinePlotItem(pos=z_axis_line_data, width=axis_line_width, color=z_axis_line_color)
         view_widget.addItem(z_axis)
-
-    def calc_pos(self):
-        # given angle and depth, calc x and y
-        
-        test = [(100, 30), (20, 20)]
-        test_fun = lambda data: data[0] * math.sin(data[1])
-        print list(map(test_fun, test))
-
-        return 0
 
     def setup_view_box(self, view_widget, line_width, V_FoV, H_FoV, depth):
 
