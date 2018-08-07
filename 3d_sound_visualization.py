@@ -13,6 +13,7 @@ import sys
 import math
 
 INVERT_X = -1
+count = 0
 
 class Window(QtGui.QWidget):
 
@@ -20,6 +21,8 @@ class Window(QtGui.QWidget):
         QtGui.QWidget.__init__(self)
 
         self.speakers = []
+        self.x_angles = []
+        self.y_angles = []
 
         self.view_widget = gl.GLViewWidget(self)
         # Setting the Viewpoint with Azimuth and Elevation
@@ -44,13 +47,17 @@ class Window(QtGui.QWidget):
 
         self.calc_pos()
 
-        num_x = 10
-        num_y = 10
-        count = 0
+        num_x = 9
+        num_y = 9
         for x in xrange(num_x):
+            self.speakers.append([])
             for y in xrange(num_y):
-                self.speakers.append(self.add_speaker(x, y, 5, 0.5))
-                count = count + 1
+                self.speakers[x].append(self.add_speaker(x, y, 5, 0.5))
+
+        # TODO: calculate angles
+        # ...
+        # self.x_angles
+        # self.y_angles
 
     def start(self):
         if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
@@ -157,15 +164,38 @@ class Window(QtGui.QWidget):
         self.view_widget.addItem(speaker)
         return speaker
 
-    def update(self, speaker, x, y, z):
+    def update_speaker_using_keys(self, speaker, x, y, z):
         position = self.get_position(speaker)
         self.transform_speaker(speaker, position[0] + x, position[1] + y, position[2] + z, 1.5)
         print self.get_position(speaker)
 
+    def update(self):
+        global count
+        count = count + 0.04
+
+        num_x = len(self.speakers)
+        num_y = len(self.speakers[0])
+
+        for x in xrange(num_x):
+            for y in xrange(num_y):
+                x_value = x - (num_x / 2.0)
+                y_value = y - (num_y / 2.0)
+                z_value = math.cos(((y - (num_y / 2.0)) / 2.0) + count) + math.cos(((x - (num_x / 2.0)) / 2.0) + count)
+                # normalize z
+                z_value = (z_value + 2.0) / 4.0
+                z_value = z_value * 15.0
+                self.transform_speaker(self.speakers[x][y], x_value * INVERT_X, y_value, z_value, 0.5)
+        
+
     def animate(self):
-        # timer = QtCore.QTimer()
-        # timer.timeout.connect(self.update)
-        # timer.start(100)
+
+        fps = 60
+        
+        # update loop every x milliseconds
+        timer = QtCore.QTimer()
+        timer.timeout.connect(self.update)
+        timer.start(1000 / fps)
+
         self.start()
 
     def eventFilter(self, widget, event):
@@ -177,23 +207,22 @@ class Window(QtGui.QWidget):
 
             # move up
             if key == QtCore.Qt.Key_W:
-                self.update(self.speakers[0], 0, 0, MOVE_DISTANCE)
+                self.update_speaker_using_keys(self.speakers[0][0], 0, 0, MOVE_DISTANCE)
             # move down
             if key == QtCore.Qt.Key_S:
-                self.update(self.speakers[0], 0, 0, -MOVE_DISTANCE)
+                self.update_speaker_using_keys(self.speakers[0][0], 0, 0, -MOVE_DISTANCE)
             # move left
             if key == QtCore.Qt.Key_A:
-                self.update(self.speakers[0], 0, -MOVE_DISTANCE, 0)
+                self.update_speaker_using_keys(self.speakers[0][0], -MOVE_DISTANCE * INVERT_X, 0, 0)
             # move right
             if key == QtCore.Qt.Key_D:
-                self.update(self.speakers[0], 0, MOVE_DISTANCE, 0)
+                self.update_speaker_using_keys(self.speakers[0][0], MOVE_DISTANCE * INVERT_X, 0, 0)
             # move backwards
             if key == QtCore.Qt.Key_F:
-                self.update(self.speakers[0], MOVE_DISTANCE, 0, 0)
+                self.update_speaker_using_keys(self.speakers[0][0], MOVE_DISTANCE, 0, 0)
             # move forwards (into screen)
             if key == QtCore.Qt.Key_R:
-                self.update(self.speakers[0], -MOVE_DISTANCE, 0, 0)
-            
+                self.update_speaker_using_keys(self.speakers[0][0], -MOVE_DISTANCE, 0, 0)
             
         return QtGui.QWidget.eventFilter(self, widget, event)
 
