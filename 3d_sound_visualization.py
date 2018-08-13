@@ -64,15 +64,20 @@ class Window(QtGui.QWidget):
         for y in xrange(image_height):
             self.y_angles.append(self.calc_angle(distance_to_near_plane, pixel_height, y))
 
+        distance_to_near_plane = 0.5
+        pixel_width = self.calc_pixel_size(distance_to_near_plane, H_FoV, image_width)
+        pixel_height = self.calc_pixel_size(distance_to_near_plane, V_FoV, image_height)
+        self.unit_vector_map = self.generate_unit_vector_map(pixel_width, pixel_height, image_width, image_height, distance_to_near_plane)
+
 
     # For pixel width:
     # - FoV = Horizontal FoV
-    # - image_size = image width
+    # - num_pixels = image width
     # For pixel height
     # - FoV = Vertical FoV
-    # - image_size = image height
-    def calc_pixel_size(self, distance_to_near_plane, FoV, image_size):
-        return ((2.0 * (distance_to_near_plane * 1.0)) * math.tan(FoV / 2.0)) / image_size
+    # - num_pixels = image height
+    def calc_pixel_size(self, distance_to_near_plane, FoV, num_pixels):
+        return ((2.0 * (distance_to_near_plane * 1.0)) * math.tan(FoV / 2.0)) / num_pixels
 
     # For vertical
     # - pixel_size = pixel height
@@ -93,11 +98,59 @@ class Window(QtGui.QWidget):
     def calc_pos_z(self, depth, angle):
         return depth * math.cos(angle)
 
-    def calc_projected_xyz(self, depth, x_th_pixel, y_th_pixel):
-        x = self.calc_pos_x_or_y(depth, self.x_angles[x_th_pixel - 1])
-        y = self.calc_pos_x_or_y(depth, self.y_angles[y_th_pixel - 1])
-        z = 5
-        return (x, y, z)
+    def calc_unit_vector(self, pixel_width, pixel_height, x_th_pixel_from_centre, y_th_pixel_from_centre, num_x_pixels, num_y_pixels, distance_to_near_plane):
+        image_width_odd = not ((num_x_pixels % 2.0) == 0.0)
+        if image_width_odd:
+            x_position = (x_th_pixel_from_centre * pixel_width)
+        else:
+            x_position = (x_th_pixel_from_centre * pixel_width) - (pixel_width / 2.0)
+
+        image_height_odd = not ((num_y_pixels % 2.0) == 0.0)
+        if image_height_odd:
+            y_position = (y_th_pixel_from_centre * pixel_height)
+        else:
+            y_position = (y_th_pixel_from_centre * pixel_height) - (pixel_height / 2.0)
+        
+        vector_length = math.sqrt((x_position ** 2.0) + (y_position ** 2.0) + (distance_to_near_plane ** 2.0))
+
+        return ((x_position / vector_length), (y_position / vector_length), (distance_to_near_plane / vector_length))
+
+    # TODO
+    def generate_unit_vector_map(self, pixel_size_x, pixel_size_y, num_x_pixels, num_y_pixels, distance_to_near_plane):
+        image_width_odd = not ((num_x_pixels % 2.0) == 0.0)
+        image_height_odd = not ((num_y_pixels % 2.0) == 0.0)
+        half_width_floored = math.floor(num_x_pixels / 2)
+        half_height_floored = math.floor(num_y_pixels / 2)
+
+        unit_vector_map = []
+        for x_th_pixel in xrange(num_x_pixels):
+            unit_vector_map.append([])
+            for y_th_pixel in xrange(num_y_pixels):
+                # center x
+                x_th_pixel_from_centre = x_th_pixel - half_width_floored
+                if x_th_pixel_from_centre >= 0 and (not image_width_odd):
+                    # this skips 0 for even width images
+                    x_th_pixel_from_centre = (x_th_pixel - half_width_floored) + 1
+                
+                # center y
+                y_th_pixel_from_centre = y_th_pixel - half_height_floored
+                if y_th_pixel_from_centre >= 0 and (not image_height_odd):
+                    # this skips 0 for even height images
+                    y_th_pixel_from_centre = (y_th_pixel - half_width_floored) + 1
+                # Invert y because top of image
+                y_th_pixel_from_centre = -y_th_pixel_from_centre
+                
+                unit_vector_map[x_th_pixel].append(self.calc_unit_vector(pixel_size_x, pixel_size_y, x_th_pixel_from_centre, y_th_pixel_from_centre, num_x_pixels, num_y_pixels, distance_to_near_plane))
+        return unit_vector_map
+
+    def projected_pixel(self, x_th_pixel, y_th_pixel, depth):
+        # x = self.calc_pos_x_or_y(depth, self.x_angles[x_th_pixel - 1])
+        # y = self.calc_pos_x_or_y(depth, self.y_angles[y_th_pixel - 1])
+        # z = 5
+        # return (x, y, z)
+        unit_vector = self.unit_vector_map[x_th_pixel][y_th_pixel] # get unit vector
+        projected_pixel = (unit_vector[0] * depth, unit_vector[1] * depth, unit_vector[2] * depth)
+        return projected_pixel
 
     def start(self):
         if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
