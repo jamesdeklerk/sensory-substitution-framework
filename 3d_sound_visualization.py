@@ -14,10 +14,10 @@ import math
 
 INVERT_X = -1
 count = 0
-H_FoV = 70.0 * (math.pi / 180.0)
-V_FoV = 45.0 * (math.pi / 180.0)
-image_width = 10
-image_height = 10
+H_FoV = 63.4 * (math.pi / 180.0)
+V_FoV = 40.4 * (math.pi / 180.0)
+image_width = 9
+image_height = 9
 
 class Window(QtGui.QWidget):
 
@@ -64,6 +64,7 @@ class Window(QtGui.QWidget):
         for y in xrange(image_height):
             self.y_angles.append(self.calc_angle(distance_to_near_plane, pixel_height, y))
 
+        # Generate unit vector map
         distance_to_near_plane = 0.5
         pixel_width = self.calc_pixel_size(distance_to_near_plane, H_FoV, image_width)
         pixel_height = self.calc_pixel_size(distance_to_near_plane, V_FoV, image_height)
@@ -103,13 +104,23 @@ class Window(QtGui.QWidget):
         if image_width_odd:
             x_position = (x_th_pixel_from_centre * pixel_width)
         else:
-            x_position = (x_th_pixel_from_centre * pixel_width) - (pixel_width / 2.0)
+            if (x_th_pixel_from_centre > 0): 
+                # if the x-th pixel from the centre is positive, minus half the pixel size
+                x_position = (x_th_pixel_from_centre * pixel_width) - (pixel_width / 2.0)
+            else:
+                # if the x-th pixel from the centre is negative, add half the pixel size
+                x_position = (x_th_pixel_from_centre * pixel_width) + (pixel_width / 2.0)
 
         image_height_odd = not ((num_y_pixels % 2.0) == 0.0)
         if image_height_odd:
             y_position = (y_th_pixel_from_centre * pixel_height)
         else:
-            y_position = (y_th_pixel_from_centre * pixel_height) - (pixel_height / 2.0)
+            if (y_th_pixel_from_centre > 0): 
+                # if the y-th pixel from the centre is positive, minus half the pixel size
+                y_position = (y_th_pixel_from_centre * pixel_height) - (pixel_height / 2.0)
+            else:
+                # if the y-th pixel from the centre is negative, add half the pixel size
+                y_position = (y_th_pixel_from_centre * pixel_height) + (pixel_height / 2.0)
         
         vector_length = math.sqrt((x_position ** 2.0) + (y_position ** 2.0) + (distance_to_near_plane ** 2.0))
 
@@ -136,7 +147,7 @@ class Window(QtGui.QWidget):
                 y_th_pixel_from_centre = y_th_pixel - half_height_floored
                 if y_th_pixel_from_centre >= 0 and (not image_height_odd):
                     # this skips 0 for even height images
-                    y_th_pixel_from_centre = (y_th_pixel - half_width_floored) + 1
+                    y_th_pixel_from_centre = (y_th_pixel - half_height_floored) + 1
                 # Invert y because top of image
                 y_th_pixel_from_centre = -y_th_pixel_from_centre
                 
@@ -255,20 +266,24 @@ class Window(QtGui.QWidget):
 
     def update(self):
         global count
-        count = count + 0.04
+        count = count + 0.02
 
         num_x = len(self.speakers)
         num_y = len(self.speakers[0])
 
         for x in xrange(num_x):
             for y in xrange(num_y):
-                x_value = x - (num_x / 2.0)
-                y_value = y - (num_y / 2.0)
-                z_value = math.cos(((y - (num_y / 2.0)) / 2.0) + count) + math.cos(((x - (num_x / 2.0)) / 2.0) + count)
+                # x_value = x - (num_x / 2.0)
+                # y_value = y - (num_y / 2.0)
+                # z_value = math.cos(((y - (num_y / 2.0)) / 2.0) + count) + math.cos(((x - (num_x / 2.0)) / 2.0) + count)
                 # normalize z
-                z_value = (z_value + 2.0) / 4.0
-                z_value = z_value * 15.0
-                self.transform_speaker(self.speakers[x][y], x_value * INVERT_X, y_value, z_value, 0.5)
+                # z_value = (z_value + 2.0) / 4.0
+                # z_value = z_value * 15.0
+                
+                z_value = abs(math.sin(count)) * 15.0
+
+                projected_pixel = self.projected_pixel(x, y, z_value)
+                self.transform_speaker(self.speakers[x][y], projected_pixel[0] * INVERT_X, projected_pixel[1], projected_pixel[2], 0.5)
         
 
     def animate(self):
