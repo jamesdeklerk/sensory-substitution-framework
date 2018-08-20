@@ -16,17 +16,19 @@ INVERT_X = -1
 count = 0
 H_FoV = 63.4 * (math.pi / 180.0)
 V_FoV = 40.4 * (math.pi / 180.0)
-image_width = 9
-image_height = 9
+image_width = 30
+image_height = 30
+
+global_x_pos = (image_width - 1)
+global_y_pos = (image_height - 1)
+global_z_pos = 10.0
+global_direction = "down"
+
 
 class Window(QtGui.QWidget):
 
     def __init__(self):
         QtGui.QWidget.__init__(self)
-
-        self.speakers = []
-        self.x_angles = []
-        self.y_angles = []
 
         self.view_widget = gl.GLViewWidget(self)
         # Setting the Viewpoint with Azimuth and Elevation
@@ -47,28 +49,13 @@ class Window(QtGui.QWidget):
         head.translate(0, 0, 0)
         self.view_widget.addItem(head)
 
-        for x in xrange(image_width):
-            self.speakers.append([])
-            for y in xrange(image_height):
-                self.speakers[x].append(self.add_speaker(x, y, 5, 0.5))
-
-        # TODO: calculate angles
-        # ...
-        # self.x_angles
-        # self.y_angles
-        distance_to_near_plane = 0.5
-        pixel_width = self.calc_pixel_size(distance_to_near_plane, H_FoV, image_width)
-        pixel_height = self.calc_pixel_size(distance_to_near_plane, V_FoV, image_height)
-        for x in xrange(image_width):
-            self.x_angles.append(self.calc_angle(distance_to_near_plane, pixel_width, x))
-        for y in xrange(image_height):
-            self.y_angles.append(self.calc_angle(distance_to_near_plane, pixel_height, y))
-
         # Generate unit vector map
         distance_to_near_plane = 0.5
         pixel_width = self.calc_pixel_size(distance_to_near_plane, H_FoV, image_width)
         pixel_height = self.calc_pixel_size(distance_to_near_plane, V_FoV, image_height)
         self.unit_vector_map = self.generate_unit_vector_map(pixel_width, pixel_height, image_width, image_height, distance_to_near_plane)
+
+        self.speaker_moveing_in_square = self.add_speaker(global_x_pos, global_y_pos, global_z_pos, 0.5)
 
 
     # For pixel width:
@@ -149,18 +136,15 @@ class Window(QtGui.QWidget):
                     # this skips 0 for even height images
                     y_th_pixel_from_centre = (y_th_pixel - half_height_floored) + 1
                 # Invert y because top of image
-                y_th_pixel_from_centre = -y_th_pixel_from_centre
+                # y_th_pixel_from_centre = -y_th_pixel_from_centre
                 
                 unit_vector_map[x_th_pixel].append(self.calc_unit_vector(pixel_size_x, pixel_size_y, x_th_pixel_from_centre, y_th_pixel_from_centre, num_x_pixels, num_y_pixels, distance_to_near_plane))
         return unit_vector_map
 
     def projected_pixel(self, x_th_pixel, y_th_pixel, depth):
-        # x = self.calc_pos_x_or_y(depth, self.x_angles[x_th_pixel - 1])
-        # y = self.calc_pos_x_or_y(depth, self.y_angles[y_th_pixel - 1])
-        # z = 5
-        # return (x, y, z)
         unit_vector = self.unit_vector_map[x_th_pixel][y_th_pixel] # get unit vector
         projected_pixel = (unit_vector[0] * depth, unit_vector[1] * depth, unit_vector[2] * depth)
+        # return (x, y, z)
         return projected_pixel
 
     def start(self):
@@ -259,31 +243,47 @@ class Window(QtGui.QWidget):
         self.view_widget.addItem(speaker)
         return speaker
 
+
     def update_speaker_using_keys(self, speaker, x, y, z):
         position = self.get_position(speaker)
         self.transform_speaker(speaker, position[0] + x, position[1] + y, position[2] + z, 1.5)
         print self.get_position(speaker)
 
+
     def update(self):
-        global count
-        count = count + 0.02
+        global count, global_x_pos, global_y_pos, global_z_pos, global_direction
+        count = count + 1
 
-        num_x = len(self.speakers)
-        num_y = len(self.speakers[0])
+        # move in square
+        
+        # only update every 5 frames
+        if (count > 5):
+            count = 0
 
-        for x in xrange(num_x):
-            for y in xrange(num_y):
-                # x_value = x - (num_x / 2.0)
-                # y_value = y - (num_y / 2.0)
-                # z_value = math.cos(((y - (num_y / 2.0)) / 2.0) + count) + math.cos(((x - (num_x / 2.0)) / 2.0) + count)
-                # normalize z
-                # z_value = (z_value + 2.0) / 4.0
-                # z_value = z_value * 15.0
-                
-                z_value = abs(math.sin(count)) * 15.0
+            if global_direction == "right":
+                global_x_pos = global_x_pos + 1
+                if global_x_pos > (image_width - 1):
+                    global_x_pos = (image_width - 1)
+                    global_direction = "down"
+            elif global_direction == "down":
+                global_y_pos = global_y_pos - 1
+                if global_y_pos < 0:
+                    global_y_pos = 0
+                    global_direction = "left"
+            elif global_direction == "left":
+                global_x_pos = global_x_pos - 1
+                if global_x_pos < 0:
+                    global_x_pos = 0
+                    global_direction = "up"
+            elif global_direction == "up":
+                global_y_pos = global_y_pos + 1
+                if global_y_pos > (image_height - 1):
+                    global_y_pos = (image_height - 1)
+                    global_direction = "right"
 
-                projected_pixel = self.projected_pixel(x, y, z_value)
-                self.transform_speaker(self.speakers[x][y], projected_pixel[0] * INVERT_X, projected_pixel[1], projected_pixel[2], 0.5)
+            # move
+            projected_pixel = self.projected_pixel(global_x_pos, global_y_pos, global_z_pos)
+            self.transform_speaker(self.speaker_moveing_in_square, projected_pixel[0] * INVERT_X, projected_pixel[1], projected_pixel[2], 0.5)
         
 
     def animate(self):
@@ -302,26 +302,15 @@ class Window(QtGui.QWidget):
             widget is self.view_widget):
             key = event.key()
 
-            MOVE_DISTANCE = 0.5
+            global global_z_pos
+            z_inc = 1
 
             # move up
             if key == QtCore.Qt.Key_W:
-                self.update_speaker_using_keys(self.speakers[0][0], 0, 0, MOVE_DISTANCE)
+                global_z_pos = global_z_pos + z_inc
             # move down
             if key == QtCore.Qt.Key_S:
-                self.update_speaker_using_keys(self.speakers[0][0], 0, 0, -MOVE_DISTANCE)
-            # move left
-            if key == QtCore.Qt.Key_A:
-                self.update_speaker_using_keys(self.speakers[0][0], -MOVE_DISTANCE * INVERT_X, 0, 0)
-            # move right
-            if key == QtCore.Qt.Key_D:
-                self.update_speaker_using_keys(self.speakers[0][0], MOVE_DISTANCE * INVERT_X, 0, 0)
-            # move backwards
-            if key == QtCore.Qt.Key_F:
-                self.update_speaker_using_keys(self.speakers[0][0], MOVE_DISTANCE, 0, 0)
-            # move forwards (into screen)
-            if key == QtCore.Qt.Key_R:
-                self.update_speaker_using_keys(self.speakers[0][0], -MOVE_DISTANCE, 0, 0)
+                global_z_pos = global_z_pos - z_inc
             
         return QtGui.QWidget.eventFilter(self, widget, event)
 
