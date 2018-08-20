@@ -12,6 +12,9 @@ import time
 import sys
 import math
 
+from openal.audio import SoundSink, SoundSource
+from openal.loaders import load_wav_file
+
 INVERT_X = -1
 count = 0
 H_FoV = 63.4 * (math.pi / 180.0)
@@ -56,6 +59,14 @@ class Window(QtGui.QWidget):
         self.unit_vector_map = self.generate_unit_vector_map(pixel_width, pixel_height, image_width, image_height, distance_to_near_plane)
 
         self.speaker_moveing_in_square = self.add_speaker(global_x_pos, global_y_pos, global_z_pos, 0.5)
+
+        self.sink = SoundSink()
+        self.sink.activate()
+        self.source = SoundSource(gain = 1.0, position=[0, 0, 0])
+        self.source.looping = True
+        data = load_wav_file("440.wav")
+        self.source.queue(data)
+        self.sink.play(self.source)
 
 
     # For pixel width:
@@ -284,7 +295,12 @@ class Window(QtGui.QWidget):
             # move
             projected_pixel = self.projected_pixel(global_x_pos, global_y_pos, global_z_pos)
             self.transform_speaker(self.speaker_moveing_in_square, projected_pixel[0] * INVERT_X, projected_pixel[1], projected_pixel[2], 0.5)
-        
+
+        # get speaker position
+        speaker_position = self.get_position(self.speaker_moveing_in_square)
+        self.source.position = [speaker_position[0] * INVERT_X, speaker_position[1], speaker_position[2]]
+        self.sink.update()
+
 
     def animate(self):
 
