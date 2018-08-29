@@ -25,7 +25,7 @@ def create_sound(frequency, length):
     modulated = envelope * carrier
 
     # Write the wav file
-    modulated *= 0.3
+    modulated *= 0.03
     modulated_ints = np.int16(modulated * 32767)
     write(generate_sound_file_name(frequency), sps, modulated_ints)
 
