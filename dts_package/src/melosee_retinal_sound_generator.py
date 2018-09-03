@@ -35,6 +35,8 @@ G = 396.0 # C_4 * (3.0/2.0)
 A = 440.0 # C_4 * (5.0/3.0)
 B = 495.0 # C_4 * (15.0/8.0)
 C_5 = 528.0 # C_4 * (2.0/1.0)
+min_z = 1000000000
+max_z = -1000000000
 
 def generate_sound_file_name(frequency):
     return str(int(frequency)) + '.wav'
@@ -85,19 +87,11 @@ def callback(retinal_encoded_data):
                 if y == 0:
                     soundSources[y][x].queue(row_one_audio)
                 elif y == 1:
-                    soundSources[y][x].queue(row_two_audio)
-                elif y ==  2:
                     soundSources[y][x].queue(row_three_audio)
-                elif y == 3:
-                    soundSources[y][x].queue(row_four_audio)
-                elif y == 4:
+                elif y ==  2:
                     soundSources[y][x].queue(row_five_audio)
-                elif y == 5:
-                    soundSources[y][x].queue(row_six_audio)
-                elif y == 6:
+                elif y == 3:
                     soundSources[y][x].queue(row_seven_audio)
-                elif y == 7:
-                    soundSources[y][x].queue(row_eight_audio)
                 # Informing the SoundSink about the SoundSource so it knows a new sound emitter is available
                 soundsink.play(soundSources[y][x])
 
@@ -110,16 +104,30 @@ def callback(retinal_encoded_data):
         soundSourcesSetup = True
     
     # TODO: update positions of sound sources
+    x_scale_factor = 1
+    y_scale_factor = 0
+    z_scale_factor = 7 * 4
+    min_z = 0.4 # for kinect
+    max_z = 5.4 # for kinect
     for y in xrange(retinal_encoded_image_height):
         for x in xrange(retinal_encoded_image_width):
-            x_scale_factor = 3
-            x_pos = ((x + 0.5) - (retinal_encoded_image_width / 2)) * x_scale_factor          # left is negative
-            y_scale_factor = 3
+            x_pos = (x - (retinal_encoded_image_width / 2)) * x_scale_factor          # left is negative
             y_pos = (-((y + 0.5) - (retinal_encoded_image_height / 2))) * y_scale_factor    # up is positive
-            z_scale_factor = 3
-            z_pos = retinal_encoded_image[y][x] * z_scale_factor
+            # distance
+            z_pos = retinal_encoded_image[y][x]
+            
+            # TODO: Dropoff function
+            if z_pos > (max_z - 1):
+                diff = z_pos - (max_z - 1)
+                z_pos = (max_z - 1) + (((1 + diff)**4) - 1)
+            else:
+                z_pos = (z_pos - min_z)
+
             if math.isnan(z_pos):
-                z_pos = 1000        # basically too far to hear
+                z_pos = 100000        # basically too far to hear
+
+            z_pos = z_pos * z_scale_factor
+
             soundSources[y][x].position = [x_pos, y_pos, z_pos]
     
     soundsink.update()

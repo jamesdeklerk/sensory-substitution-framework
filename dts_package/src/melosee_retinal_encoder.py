@@ -254,6 +254,8 @@ def run_melosee(depth_image, sampled_pixels_map):
             RF_depth = 0
             if not count == 0:
                 RF_depth = total / count
+                # if realsense
+                RF_depth = RF_depth / 1000.0
             else:
                 RF_depth = DEFAULT_FAR_DEPTH
 
@@ -278,8 +280,8 @@ def depthCallback(depth_data):
     # 640 x 480 -> 8 x 8
     depth_image_width = len(depth_image[0])
     depth_image_height = len(depth_image)
-    output_image_width = 8
-    output_image_height = 8
+    output_image_width = 7
+    output_image_height = 4
 
     # setup sampled_pixels_map if it wasn't setup
     global RF_map
@@ -298,7 +300,7 @@ def retinalEncoder():
     print('NODE RUNNING: melosee_retinal_encoder')
 
     # Get depth image from depth camera
-    rospy.Subscriber("camera/depth/image", Image, depthCallback)
+    rospy.Subscriber("camera/depth/image_rect_raw", Image, depthCallback)
 
     rospy.spin()
 
