@@ -159,7 +159,7 @@ include_directories(
 ## in contrast to setup.py, you can choose the destination
 # install(PROGRAMS
 #   src/melosee_retinal_encoder.py
-#   src/melosee_retinal_sound_generator.py
+#   src/melosee_sound_generator.py
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
 

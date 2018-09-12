@@ -1,6 +1,6 @@
 <launch>
 
 	<node pkg="dts_package" type="melosee_retinal_encoder.py" name="melosee_retinal_encoder" output="screen"></node>
-	<!-- <node pkg="dts_package" type="melosee_retinal_sound_generator.py" name="sound_generator" output="screen"></node> -->
+	<node pkg="dts_package" type="melosee_sound_generator.py" name="sound_generator" output="screen"></node>
 
 </launch>
