@@ -1,6 +1,21 @@
 <launch>
 
-	<node pkg="dts_package" type="melosee_retinal_encoder.py" name="melosee_retinal_encoder" output="screen"></node>
-	<node pkg="dts_package" type="melosee_sound_generator.py" name="sound_generator" output="screen"></node>
+	<!-- Retinal Encoder -->
+	<!-- TODO: consider putting into seporate file -->
+	<!-- 
+	This is where the user sets the 
+		- Retinal Encoder
+		- Sound Generator
+	algorithms to be used. 
+	-->
+	<arg name="retinal_encoder" default="melosee_retinal_encoder"/>
+	<arg name="sound_generator" default="melosee_sound_generator"/>
+
+	<node pkg="dts_package" type="$(arg retinal_encoder).py" name="melosee_retinal_encoder" output="screen"></node>
+	<node pkg="dts_package" type="$(arg sound_generator).py" name="sound_generator" output="screen"></node>
+
+	<!-- Setup rqt for visualization -->
+	<arg name="rqt_config_folder" default="$(find dts_package)/config/rqt"/>
+	<node name="rqt_gui" pkg="rqt_gui" type="rqt_gui" args='--perspective-file "$(arg rqt_config_folder)/rgd_depth_encoded.perspective"'/>
 
 </launch>
