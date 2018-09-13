@@ -2,11 +2,10 @@
 SSF is a ROS (Robot Operating System) based Framework for Sensory Substitution
 
 ---
----
 
 ## Setup the project
 
-### Clone repo to a folder
+#### Clone repo to a folder
 
 1. Clone the ROS project git (this git repo) into a folder (*NOTE: when/if editing the code, do it from this location*)
     - This folder can be placed where ever you would like to work from
@@ -14,7 +13,7 @@ SSF is a ROS (Robot Operating System) based Framework for Sensory Substitution
 2. Build and run the project (follow the steps below)
 
 
-### Setting up catkin workspace (used to build the project)
+#### Setting up catkin workspace (used to build the project)
 
 3. Create a folder called ***catkin_workspace***
     - This folder can be placed where ever you would like, so long as it's not a subfolder of ***ssf_package*** (i.e. so long as it's not part of the repo cloned earlier)
@@ -26,7 +25,7 @@ SSF is a ROS (Robot Operating System) based Framework for Sensory Substitution
     - Move the linked folder (***Link to ssf_package***) into ***catkin_workspace/src/***
     - Rename the linked folder to ***ssf_package*** (i.e. removing the "***Link to***" from the name)
 
-### Building the project
+#### Building the project
 
 6. Open a terminal to the ***catkin_workspace*** directory
 7. Then from that terminal run <code>catkin build ssf_package</code>
@@ -45,7 +44,7 @@ SSF is a ROS (Robot Operating System) based Framework for Sensory Substitution
 *- Both devices must be connected to the same network*<br>
 *- Both devices should have a build version of the cloned repo*
 
-### Below are the steps for the main device (i.e. the one running roscore)
+#### Below are the steps for the main device (i.e. the one running roscore)
 
 1. Open a terminal (in any directory)
 2. Then from that terminal run <code>roscore</code>
@@ -57,7 +56,7 @@ SSF is a ROS (Robot Operating System) based Framework for Sensory Substitution
 7. Then from that terminal run the nodes you would like to run
     - e.g. In the same terminal, run  <code>rosrun ssf_package melosee_retinal_encoder.py</code>
 
-### Below are the steps for a secondary device
+#### Below are the steps for a secondary device
 
 1. Open a *new* terminal to the ***catkin_workspace*** directory
 2. Then from that terminal run <code>source devel/setup.bash</code>
