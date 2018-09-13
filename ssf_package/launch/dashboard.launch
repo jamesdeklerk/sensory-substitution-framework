@@ -1,0 +1,7 @@
+<launch>
+
+	<!-- Setup rqt for visualization -->
+	<arg name="rqt_config_folder" default="$(find ssf_package)/config/rqt"/>
+	<node name="rqt_gui" pkg="rqt_gui" type="rqt_gui" args='--perspective-file "$(arg rqt_config_folder)/rgd_depth_encoded.perspective"'/>
+
+</launch>
