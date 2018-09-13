@@ -22,8 +22,8 @@ if __name__ == "__main__":
     sources = [['[0][0]', '[0][1]', '[0][2]'], ['[1][0]', '[1][1]', '[1][2]'], ['[2][0]', '[2][1]', '[2][2]']]
 
     # A SoundSource is an object that emits sounds
-    source1 = SoundSource(position=[0, 0, 0])
-    source2 = SoundSource(position=[0, 0, 0])
+    source1 = SoundSource(position=[0, 0, 1])
+    source2 = SoundSource(position=[0, 0, 1])
     # Specifying if the source should loop the sound
     source1.looping = True
     source2.looping = True
