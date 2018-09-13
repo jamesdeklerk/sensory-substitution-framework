@@ -1,8 +1,7 @@
 # SSF - Sensory Substitution Framework
 SSF is a ROS (Robot Operating System) based Framework for Sensory Substitution
 
-
-<br>
+---
 
 ## Setup the project
 
@@ -28,16 +27,43 @@ SSF is a ROS (Robot Operating System) based Framework for Sensory Substitution
 
 **Building the project**
 
-6. Open the terminal to the ***catkin_workspace*** directory
-7. Then in the terminal run <code>catkin build ssf_package</code>
+6. Open a terminal to the ***catkin_workspace*** directory
+7. Then from that terminal run <code>catkin build ssf_package</code>
 <br>
 <br>
 
-## Running the project
+## Running the project *locally*
 
 *This launches the all the nodes of the ssf package*
 
+1. Open a terminal to the ***catkin_workspace*** directory
+2. Then from that terminal run <code>source devel/setup.bash</code>
+3. Then from that terminal run <code>roslaunch ssf_package default.launch</code>
+<br>
+<br>
 
-1. Open the terminal to the ***catkin_workspace*** directory
-2. Then in the terminal run <code>source devel/setup.bash</code>
-3. Then in the terminal run <code>roslaunch ssf_package default.launch</code>
+## **Alternative:** Running the project across *multiple devices*
+
+*NOTE for this example:*<br>
+*- Both devices must be connected to the same network*<br>
+*- Both devices should have a build version of the cloned repo*
+
+**Below are the steps for the main device (i.e. the one running roscore)**
+
+1. Open a terminal (in any directory)
+2. Then from that terminal run <code>roscore</code>
+3. Open a *new* terminal to the ***catkin_workspace*** directory
+4. Then from that terminal run <code>source devel/setup.bash</code>
+5. Then from that terminal run <code>hostname -I</code>
+    - This will return the **main device's IP address** (___.___.___.___)
+6. Then from that terminal run <code>export ROS_IP=___.___.___.___</code> (filling in the IP address found in the previous step)
+7. Then from that terminal run the nodes you would like to run
+    - e.g. In the same terminal, run  <code>rosrun ssf_package melosee_retinal_encoder.py</code>
+
+**Below are the steps for a secondary device**
+
+1. Open a *new* terminal to the ***catkin_workspace*** directory
+2. Then from that terminal run <code>source devel/setup.bash</code>
+3. Then from that terminal run <code>export ROS_MASTER_URI=http://___.___.___.___:11311</code> (filling in the **main device's IP address** found in the previous section)
+4. Then from that terminal run the nodes you would like to run
+    - e.g. In the same terminal, run  <code>rqt</code>
