@@ -30,6 +30,8 @@ SSF is a ROS (Robot Operating System) based Framework for Sensory Substitution
 6. Open a *new* terminal in the ***catkin_workspace*** directory
 7. Then from that terminal run <code>catkin build ssf_package</code>
 
+---
+
 ## Running the project *locally*
 
 *This launches the all the nodes of the ssf package*
@@ -111,3 +113,5 @@ SSF is a ROS (Robot Operating System) based Framework for Sensory Substitution
     - Possibly right at the top of the file, specifiy all the pip install
     - e.g. pip install xyz
 - Convert .bag file to video (.mp4) for uploading to YouTube
+
+---
