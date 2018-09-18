@@ -1,6 +1,8 @@
 # SSF - Sensory Substitution Framework
 SSF is a ROS (Robot Operating System) based Framework for Sensory Substitution
 
+**NOTE:** anything in < > should be replaced appropriately, e.g. "<file_name>.py" might become "my_script.py"
+
 ---
 
 ## Setup the project
@@ -100,6 +102,26 @@ SSF is a ROS (Robot Operating System) based Framework for Sensory Substitution
     - e.g. In the same terminal, run <code>rqt</code>
 5. Steps 1. 2. 3. 4. can be repeated done to run another node
 
+---
+
+## Set Parameters Using Dynamic Reconfigure
+The following command allow you to change parameter values using [http://wiki.ros.org/rqt_reconfigure].
+```bash
+rosrun rqt_reconfigure rqt_reconfigure
+```
+---
+
+## Common Issues
+* Make sure all .py and .cfg files are executable, using
+    * For .py files use
+        ```bash
+        chmod +x <file_name>.cfg
+        ```
+    * For .cfg files use
+        ```bash
+        chmod +x <file_name>.cfg
+        ```
+*
 ---
 
 ## TODO for README

@@ -9,6 +9,7 @@ project(ssf_package)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   rospy
+  dynamic_reconfigure
 )
 
 ## System dependencies are found with CMake's conventions
@@ -86,10 +87,13 @@ find_package(catkin REQUIRED COMPONENTS
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
-#   cfg/DynReconf1.cfg
-#   cfg/DynReconf2.cfg
-# )
+generate_dynamic_reconfigure_options(
+  cfg/Parameters.cfg
+)
+
+# make sure configure headers are built before any node using them
+# add_dependencies(dynamic_reconfigure_server ${PROJECT_NAME}_gencfg)
+
 
 ###################################
 ## catkin specific configuration ##
@@ -158,8 +162,8 @@ include_directories(
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 # install(PROGRAMS
-#   src/melosee_retinal_encoder.py
-#   src/melosee_sound_generator.py
+#   src/retinal_encoder/melosee_retinal_encoder.py
+#   src/retinal_encoder/melosee_sound_generator.py
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
 

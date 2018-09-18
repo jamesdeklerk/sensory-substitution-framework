@@ -14,8 +14,15 @@
 	<node pkg="ssf_package" type="$(arg retinal_encoder).py" name="melosee_retinal_encoder" output="screen"></node>
 	<node pkg="ssf_package" type="$(arg sound_generator).py" name="sound_generator" output="screen"></node>
 
+	<!-- Boot up the dynamic_reconfigure server -->
+	<node pkg="ssf_package" type="dynamic_parameters_server.py" name="dynamic_parameters_server" output="screen"></node>
+	<node pkg="ssf_package" type="dynamic_parameters_client.py" name="dynamic_parameters_client" output="screen"></node>
+
+	<!-- Open rqt dynamic_reconfigure (for adjusting dynamic parameters) -->
+	<node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" />
+
 	<!-- Setup rqt for visualization -->
-	<arg name="rqt_config_folder" default="$(find ssf_package)/config/rqt"/>
+	<arg name="rqt_config_folder" default="$(find ssf_package)/cfg/rqt"/>
 	<node name="rqt_gui" pkg="rqt_gui" type="rqt_gui" args='--perspective-file "$(arg rqt_config_folder)/rgd_depth_encoded.perspective"'/>
 
 </launch>
