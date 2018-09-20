@@ -125,6 +125,7 @@ rosrun rqt_reconfigure rqt_reconfigure
 ---
 
 ## TODO for README
+- Mention when creating custom retinal encoder, the <name> should be <name>_retinal_encoder.py
 - Upload .bag files & update [this](#playback) with the link
 - Ubuntu + ROS setup using VMware Workstation Player Setup
     - Notes:

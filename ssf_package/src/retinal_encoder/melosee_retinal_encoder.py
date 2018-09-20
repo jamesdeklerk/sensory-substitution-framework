@@ -295,7 +295,8 @@ def depthCallback(depth_data):
     
     image_pub.publish(bridge.cv2_to_imgmsg(output_image, "32FC1"))
 
-def retinalEncoder():
+
+def main():
     rospy.init_node('melosee_retinal_encoder', anonymous=True)
     print('NODE RUNNING: melosee_retinal_encoder')
 
@@ -306,4 +307,7 @@ def retinalEncoder():
 
 
 if __name__ == '__main__':
-    retinalEncoder()
+    try:
+        main()
+    except rospy.ROSInterruptException:
+        pass

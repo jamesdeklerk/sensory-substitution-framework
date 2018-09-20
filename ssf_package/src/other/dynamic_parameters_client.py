@@ -5,7 +5,7 @@ import rospy
 import dynamic_reconfigure.client
 
 
-def callback(config):
+def parameter_changed_callback(config):
     rospy.loginfo(
         "Config set to {int_param}, {double_param}, {str_param}, {bool_param}, {size}".format(**config))
 
@@ -13,7 +13,8 @@ def callback(config):
 if __name__ == "__main__":
     rospy.init_node("dynamic_parameters_client")
 
-    client = dynamic_reconfigure.client.Client("dynamic_parameters_server", timeout=300, config_callback=callback)
+    client = dynamic_reconfigure.client.Client("dynamic_parameters_server",
+                                               timeout=300, config_callback=parameter_changed_callback)
 
     # r = rospy.Rate(0.1)
     # x = 0

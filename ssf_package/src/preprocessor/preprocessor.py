@@ -8,23 +8,28 @@ import numpy as np
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
-processed_depth_image_pub = rospy.Publisher("processed_depth_image",Image, queue_size=2)
-bridge = CvBridge()
 
 # https://docs.opencv.org/2.4/modules/imgproc/doc/geometric_transformations.html#resize
 INTERPOLATION_DICT = {
     "INTER_NEAREST": cv2.INTER_NEAREST,
-    "INTER_LINEAR": cv2.INTER_LINEAR, # cv2 default
+    "INTER_LINEAR": cv2.INTER_LINEAR,  # cv2 default
     "INTER_AREA": cv2.INTER_AREA,
     "INTER_CUBIC": cv2.INTER_CUBIC,
     "INTER_LANCZOS4": cv2.INTER_LANCZOS4
 }
 
-# CONFIG
-interpolation_used = "INTER_LINEAR"
-depth_image_scaled_width = 96 # depth_image_scaled_height is calculated based on the original image ratio
 
-def depthCallback(depth_data):
+# CONFIG - make into config file setting
+depth_image_topic = "camera/depth/image_rect_raw"
+interpolation_used = "INTER_LINEAR"
+depth_image_scaled_width = 96  # depth_image_scaled_height is calculated based on the original image ratio
+
+
+processed_depth_image_pub = rospy.Publisher("processed_depth_image", Image, queue_size=2)
+bridge = CvBridge()
+
+
+def depth_callback(depth_data):
 
     depth_image = bridge.imgmsg_to_cv2(depth_data, desired_encoding="32FC1")
 
@@ -49,9 +54,10 @@ def preprocessor():
     print('NODE RUNNING: preprocessor')
 
     # Get depth image from depth camera
-    rospy.Subscriber("camera/depth/image_rect_raw", Image, depthCallback)
+    rospy.Subscriber(depth_image_topic, Image, depth_callback)
 
     rospy.spin()
+
 
 if __name__ == '__main__':
     preprocessor()
