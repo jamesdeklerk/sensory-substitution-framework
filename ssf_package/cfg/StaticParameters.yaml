@@ -1,0 +1,20 @@
+preprocessor:
+  input:
+    depth_image:
+      topic: "camera/depth/image_rect_raw"
+  output:
+    depth_image:
+      topic: "processed_depth_image"
+      width: 96 # pixels
+
+retinal_encoder:
+  input:
+    depth_image:
+      topic: "processed_depth_image"
+  output:
+    depth_image:
+      topic: "retinal_encoded_image"
+      width: 9 # pixels
+
+sound_generator:
+  retinal_encoded_image_topic: "retinal_encoded_image"

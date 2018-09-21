@@ -1,0 +1,5 @@
+<launch>
+
+    <rosparam command="load" file="$(find ssf_package)/cfg/StaticParameters.yaml" />
+
+</launch>
