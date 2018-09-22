@@ -49,7 +49,7 @@ def depth_callback(depth_data):
     processed_depth_image_pub.publish(bridge.cv2_to_imgmsg(depth_image_scaled, "32FC1"))
 
 
-def preprocessor():
+def main():
     rospy.init_node('preprocessor', anonymous=True)
     print('NODE RUNNING: preprocessor')
 
@@ -60,4 +60,4 @@ def preprocessor():
 
 
 if __name__ == '__main__':
-    preprocessor()
+    main()

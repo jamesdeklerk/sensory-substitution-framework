@@ -156,7 +156,7 @@ def callback(retinal_encoded_data):
 
 
 def soundGenerator():
-    rospy.init_node('sound_generator', anonymous=True)
+    rospy.init_node('sound_generator')
     print('NODE RUNNING: sound_generator')
 
     # subscribe to retinal encoded image

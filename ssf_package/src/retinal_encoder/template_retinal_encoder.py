@@ -51,12 +51,6 @@ def depth_callback(depth_image_imgmsg_format):
     retinal_encoded_image_pub.publish(retinal_encoded_image_imgmsg_format)
 
 
-# TODO(for James): Maybe make part of ssf_core?
-def retinal_encoder_algorithm_changed():
-    # boot up <algorithm_name>_retinal_encoder.py
-    pass
-
-
 def parameter_changed_callback(config):
     
     # TODO(for James): check if retinal_encoder_algorithm changed,

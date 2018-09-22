@@ -297,7 +297,7 @@ def depthCallback(depth_data):
 
 
 def main():
-    rospy.init_node('melosee_retinal_encoder', anonymous=True)
+    rospy.init_node('melosee_retinal_encoder')
     print('NODE RUNNING: melosee_retinal_encoder')
 
     # Get depth image from depth camera

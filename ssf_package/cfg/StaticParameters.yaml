@@ -1,3 +1,10 @@
+# Setting the defaults for the dynamic parameters server
+# NOTE: this overrides the defaults set in the Parameters.cfg file
+dynamic_parameters_server:
+  retinal_encoder_algorithm: "melosee"
+  sound_generator_algorithm: "melosee"
+
+
 preprocessor:
   input:
     depth_image:
@@ -7,6 +14,7 @@ preprocessor:
       topic: "processed_depth_image"
       width: 96 # pixels
 
+
 retinal_encoder:
   input:
     depth_image:
@@ -15,6 +23,7 @@ retinal_encoder:
     depth_image:
       topic: "retinal_encoded_image"
       width: 9 # pixels
+
 
 sound_generator:
   retinal_encoded_image_topic: "retinal_encoded_image"
