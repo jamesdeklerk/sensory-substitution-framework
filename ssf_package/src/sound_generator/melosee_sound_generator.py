@@ -40,6 +40,10 @@ min_z = 1000000000
 max_z = -1000000000
 
 
+# TODO: Check if width or height of image chaged, if it did, update it
+#       print("reconfigure sound_generator for new depth image")
+
+
 def get_current_path():
     return os.path.dirname(os.path.abspath(__file__))
 

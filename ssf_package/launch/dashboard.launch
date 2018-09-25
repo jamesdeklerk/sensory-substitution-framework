@@ -6,7 +6,4 @@
 	<arg name="rqt_config_folder" value="$(find ssf_package)/cfg/rqt"/>
 	<node name="rqt_gui" pkg="rqt_gui" type="rqt_gui" args='--perspective-file "$(arg rqt_config_folder)/dashboard.perspective"'/>
 
-	<!-- Open rqt dynamic_reconfigure (for adjusting dynamic parameters) -->
-	<node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" />
-
 </launch>

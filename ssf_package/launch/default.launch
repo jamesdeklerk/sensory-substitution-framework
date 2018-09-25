@@ -1,26 +1,6 @@
 <launch>
 
-
 	<include file="$(find ssf_package)/launch/include/include.launch" />
-	<rosparam param="a_list">$(env preprocessor)</rosparam>
-
-	<!-- Retinal Encoder -->
-	<!-- TODO: consider putting into seporate file -->
-	<!-- 
-	This is where the user sets the 
-		- Retinal Encoder
-		- Sound Generator
-	algorithms to be used. 
-	-->
-	<arg name="retinal_encoder" value="melosee_retinal_encoder"/>
-	<arg name="sound_generator" value="melosee_sound_generator"/>
-
-
-	<!-- <node pkg="ssf_package" type="$(arg retinal_encoder).py" name="retinal_encoder" output="screen"></node> -->
-	<node pkg="ssf_package" type="$(arg sound_generator).py" name="sound_generator" output="screen"></node>
-
-	<!-- Open rqt dynamic_reconfigure (for adjusting dynamic parameters) -->
-	<node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" />
 
 	<!-- Setup rqt for visualization -->
 	<arg name="rqt_config_folder" value="$(find ssf_package)/cfg/rqt"/>

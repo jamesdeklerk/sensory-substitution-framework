@@ -2,33 +2,58 @@
 
 import rospy
 import roslaunch
-import rosparam
 
 from dynamic_reconfigure.server import Server
 from ssf_package.cfg import ParametersConfig
 
 
+current_retinal_encoder_algorithm = ""
+current_sound_generator_algorithm = ""
+
+
 # TODO(for James): Maybe make part of ssf_core?
-def launch_retinal_encoder(package, algorithm):
-    executable = algorithm + "_retinal_encoder.py"
-    node = roslaunch.core.Node(package, executable, name="retinal_encoder", output="screen")
+def launch_node(package_name, executable_file, node_name, output_to_screen):
+    
+    if (output_to_screen):
+        node = roslaunch.core.Node(package_name, executable_file, name=node_name, output="screen")
+    else:
+        node = roslaunch.core.Node(package_name, executable_file, name=node_name)
+
+    # This will automatically shutdown a node with same name launched
     launch = roslaunch.scriptapi.ROSLaunch()
     launch.start()
     process = launch.launch(node)
-    
+
     return node
 
 
 def parameter_changed_callback(config, level):
 
-    print("retinal_encoder_algorithm: {}".format(config.retinal_encoder_algorithm))
+    global current_retinal_encoder_algorithm, current_sound_generator_algorithm
 
-    # TODO: check if file/node exists,
-    #       if not, output error, retinal_encoder_... node not found,
-    #       please make sure this was spelt correctly
-    # TODO: Leave it to shutdown node automatically when node
-    #       with same name launched, or manually shut down?
-    launch_retinal_encoder("ssf_package", config.retinal_encoder_algorithm)
+    # Update the retinal encoder algorithm if need be
+    if (current_retinal_encoder_algorithm != config.retinal_encoder_algorithm):
+        try:
+            launch_node("ssf_package", config.retinal_encoder_algorithm + "_retinal_encoder.py",
+                        "retinal_encoder", True)
+        except Exception:
+            rospy.logerr("Looks like something went wrong running that retinal_encoder_algorithm, are you sure '" +
+                         config.retinal_encoder_algorithm + "' is a valid algorithm?")
+        else:
+            current_retinal_encoder_algorithm = config.retinal_encoder_algorithm
+            print("retinal_encoder_algorithm changed to: {}".format(config.retinal_encoder_algorithm))
+
+    # Update the sound generator algorithm if need be
+    if (current_sound_generator_algorithm != config.sound_generator_algorithm):
+        try:
+            launch_node("ssf_package", config.sound_generator_algorithm + "_sound_generator.py",
+                        "sound_generator", True)
+        except Exception:
+            rospy.logerr("Looks like something went wrong running that sound_generator_algorithm, are you sure '" +
+                         config.sound_generator_algorithm + "' is a valid algorithm?")
+        else:
+            current_sound_generator_algorithm = config.sound_generator_algorithm
+            print("sound_generator_algorithm changed to: {}".format(config.sound_generator_algorithm))
 
     return config
 
