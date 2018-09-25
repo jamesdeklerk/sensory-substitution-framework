@@ -32,6 +32,15 @@ SSF is a ROS (Robot Operating System) based Framework for Sensory Substitution
 6. Open a *new* terminal in the ***catkin_workspace*** directory
 7. Then from that terminal run <code>catkin build ssf_package</code>
 
+#### OPTIONAL: Add the source setup.bash command to your ~/.bashrc file
+
+*The following is to add the source setup.bash command to your ~/.bashrc file, so that it will be executed every time that you open a new shell. Using this means one won't have to enter <code>source devel/setup.bash</code> every time.*
+
+1. Open a *new* terminal in the ***catkin_workspace*** directory
+2. Then from that terminal run <code>echo "source ~/Desktop/catkin_workspace/devel/setup.bash" >> ~/.bashrc</code> (assuming your workspace is on the desktop in the folder catkin_workspace)
+3. Then from that terminal run <code>source ~/.bashrc</code>
+
+
 ---
 
 ## Running the project *locally*
