@@ -27,7 +27,7 @@ SSF is a ROS (Robot Operating System) based Framework for Sensory Substitution
     - Move the linked folder (***Link to ssf_package***) into ***catkin_workspace/src/***
     - Rename the linked folder to ***ssf_package*** (i.e. removing the "***Link to***" from the name)
 
-#### Building the project
+#### <a name="building_the_project"></a>Building the project
 
 6. Open a *new* terminal in the ***catkin_workspace*** directory
 7. Then from that terminal run <code>catkin build ssf_package</code>
@@ -43,7 +43,7 @@ SSF is a ROS (Robot Operating System) based Framework for Sensory Substitution
 
 ---
 
-## Running the project *locally*
+## <a name="running_the_project_locally"></a>Running the project *locally*
 
 *This launches the all the nodes of the ssf package*
 
@@ -130,7 +130,9 @@ rosrun rqt_reconfigure rqt_reconfigure
         ```bash
         chmod +x <file_name>.cfg
         ```
-*
+* rosrun or roslaunch can't find package or file:
+    * Make sure the project is built (see [Building the project](#building_the_project))
+    * Make sure you have sourced the files (see [Running the project locally](#running_the_project_locally))
 ---
 
 ## TODO for README
