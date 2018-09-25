@@ -3,6 +3,8 @@
 dynamic_parameters_server:
   retinal_encoder_algorithm: "melosee"
   sound_generator_algorithm: "melosee"
+  test:
+    sub: 123
 
 
 preprocessor:
