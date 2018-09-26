@@ -21,16 +21,19 @@ SSF is a ROS (Robot Operating System) based Framework for Sensory Substitution
     - This folder can be placed where ever you would like, so long as it's not a subfolder of ***ssf_package*** (i.e. so long as it's not part of the repo cloned earlier)
     - We recommend creating the folder on the desktop
 4. Create a subfolder called ***src*** (i.e. ***catkin_workspace/src***)
-5. Symlink the package (i.e. the folder called ***ssf_package***) to the ***catkin_workspace/src/*** directory. The easiest way to do this is:
-    - Right click ***ssf_package***, select **Make Link**
-    - A linked folder will be created (in the current directory) called ***Link to ssf_package***
-    - Move the linked folder (***Link to ssf_package***) into ***catkin_workspace/src/***
-    - Rename the linked folder to ***ssf_package*** (i.e. removing the "***Link to***" from the name)
+5. Symlink the package (i.e. the folder called ***ssf_package***) to the ***catkin_workspace/src/*** directory.
+    - The easiest way to do this is:
+        - Right click ***ssf_package***, select **Make Link**
+        - A linked folder will be created (in the current directory) called ***Link to ssf_package***
+        - Move the linked folder (***Link to ssf_package***) into ***catkin_workspace/src/***
+        - Rename the linked folder to ***ssf_package*** (i.e. removing the "***Link to***" from the name)
+    - Or one can use the terminal command:
+        - <code>ln -s ~/Desktop/code/ssf_package/ ~/Desktop/catkin_workspace/src/</code> (to create a symlink at ~/Desktop/catkin_workspace/src/ referencing the original folder ~/Desktop/code/ssf_package/)
 
 #### <a name="building_the_project"></a>Building the project
 
 6. Open a *new* terminal in the ***catkin_workspace*** directory
-7. Then from that terminal run <code>catkin build ssf_package</code>
+7. Then from that terminal run <code>catkin build</code> (if catkin is not installed run <code>sudo apt-get install python-catkin-tools</code>)
 
 #### OPTIONAL: Add the source setup.bash command to your ~/.bashrc file
 
@@ -82,25 +85,32 @@ SSF is a ROS (Robot Operating System) based Framework for Sensory Substitution
 
 ## **Advanced Alternative:** Running the project across *multiple devices*
 
-***NOTE** for this example:*<br>
-*- Both devices must be connected to the same network*<br>
-*- Both devices should have a built version of the cloned repo*
+***NOTE** for this example:*
+- *Both devices must be connected to the same network*
+    - OPTIONAL: For the fastest wireless connection, make one of the machines host a network (a hostednetwork), and the other connect to that network.
+        - *NB: the master node must be run from the client machine NOT the host machine, hence:*
+            - For the client machine (the one connected to hosted network), follow the steps below for the ***main device***
+            - For the host machine (the one hosting the network), follow the steps below for the ***secondary device***
+        - If you are using VMware (if not, ignore this step):
+            - For the client machine make sure the Network Adapter in the virtual machines settings is set to Bridged: Connected directly to the physical network
+            - For the host machine make sure the Network Adapter in the virtual machines settings is set to NAT: Used to share the host's IP address
+    - NB: If you are using VMware, but aren't using a network hosted by one of the machines, then make sure the Network Adapter's for all the virtual machines settings are set to Bridged: Connected directly to the physical network
+- Both devices should have a built version of the cloned repo*
 
-#### Below are the steps for the main device (i.e. the one running roscore)
+#### Below are the steps for the *main device* (i.e. the one running roscore)
 
-1. Open a *new* terminal (in any directory)
-2. Then from that terminal run <code>roscore</code>
-3. Open a *new* terminal in the ***catkin_workspace*** directory
-4. Then from that terminal run <code>source devel/setup.bash</code>
-5. Then from that terminal run <code>hostname -I</code>
+1. Open a *new* terminal in the ***catkin_workspace*** directory
+2. Then from that terminal run <code>source devel/setup.bash</code>
+3. Then from that terminal run <code>hostname -I</code>
     - This will return the **main device's IP address** (___.___.___.___)
-6. Then from that terminal run <code>export ROS_IP=___.___.___.___</code> (filling in the IP address found in the previous step)
-7. Then from that terminal run the node you would like to run
+4. Then from that terminal run <code>export ROS_IP=___.___.___.___</code> (filling in the IP address found in the previous step)
+5. Then from that terminal run <code>roscore</code>
+6. Then from that terminal run the node you would like to run
     - e.g. In the same terminal, run <code>roslaunch ssf_package default.launch</code> (recommended)
-8. Steps 3. 4. 6. 7. can be repeated done to run another node
-    - e.g. For 7. try running <code>rosbag play -l example.bag</code> (recommended) *NOTE: example.bag will need to be downloaded to the **catkin_workspace** for this to run, see [this](#playback)*
+7. If you want access to a nodes output, when launching that node, you should perform steps 1. 2. 4. 6.
+    - e.g. For 6. try running <code>rosbag play -l example.bag</code> (recommended) *NOTE: example.bag will need to be downloaded to the **catkin_workspace** for this to run, see [this](#playback)*
 
-#### Below are the steps for a secondary device (complete these steps on the secondary device)
+#### Below are the steps for a *secondary device* (complete these steps on the secondary device)
 
 1. Open a *new* terminal in the ***catkin_workspace*** directory
 2. Then from that terminal run <code>source devel/setup.bash</code>
