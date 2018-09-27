@@ -101,7 +101,7 @@ SSF is a ROS (Robot Operating System) based Framework for Sensory Substitution
 
 1. Open a *new* terminal in the ***catkin_workspace*** directory
 2. Then from that terminal run <code>source devel/setup.bash</code>
-3. Then from that terminal run <code>hostname -I</code>
+3. Then from that terminal run <code>hostname -I</code> (NB: capital I)
     - This will return the **main device's IP address** (___.___.___.___)
 4. Then from that terminal run <code>export ROS_IP=___.___.___.___</code> (filling in the IP address found in the previous step)
 5. Then from that terminal run <code>roscore</code>
