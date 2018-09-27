@@ -41,7 +41,7 @@ def parameter_changed_callback(config, level):
                          config.retinal_encoder_algorithm + "' is a valid algorithm?")
         else:
             current_retinal_encoder_algorithm = config.retinal_encoder_algorithm
-            print("retinal_encoder_algorithm changed to: {}".format(config.retinal_encoder_algorithm))
+            rospy.logwarn("retinal_encoder_algorithm changed to: " + current_retinal_encoder_algorithm)
 
     # Update the sound generator algorithm if need be
     if (current_sound_generator_algorithm != config.sound_generator_algorithm):
@@ -53,7 +53,7 @@ def parameter_changed_callback(config, level):
                          config.sound_generator_algorithm + "' is a valid algorithm?")
         else:
             current_sound_generator_algorithm = config.sound_generator_algorithm
-            print("sound_generator_algorithm changed to: {}".format(config.sound_generator_algorithm))
+            rospy.logwarn("sound_generator_algorithm changed to: " + current_sound_generator_algorithm)
 
     return config
 

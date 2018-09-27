@@ -153,9 +153,12 @@ rosrun rqt_reconfigure rqt_reconfigure
         - Uses Python 2.7 ?
         - etc.
     - Maybe upload VMware machine?
-- For the software to run correctly, please install these Python Packages (we use <code>pip install</code>)
-    - Possibly right at the top of the file, specifiy all the pip install
-    - e.g. pip install xyz
+- For the software to run correctly, please install the following:
+    - <code>pip install opencv-python</code>
+    - <code>pip install numpy</code>
+    - <code>pip install matplotlib</code>
+    - <code>sudo apt-get install libalut-dev</code>
+    - <code>sudo apt-get install libopenal-dev</code>
 - Convert .bag file to video (.mp4) for uploading to YouTube
 
 ---
