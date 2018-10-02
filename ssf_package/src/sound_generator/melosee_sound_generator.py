@@ -110,11 +110,19 @@ def callback(retinal_encoded_data):
                 if y == 0:
                     soundSources[y][x].queue(row_one_audio)
                 elif y == 1:
-                    soundSources[y][x].queue(row_three_audio)
+                    soundSources[y][x].queue(row_two_audio)
                 elif y == 2:
-                    soundSources[y][x].queue(row_five_audio)
+                    soundSources[y][x].queue(row_three_audio)
                 elif y == 3:
+                    soundSources[y][x].queue(row_four_audio)
+                elif y == 4:
+                    soundSources[y][x].queue(row_five_audio)
+                elif y == 5:
+                    soundSources[y][x].queue(row_six_audio)
+                elif y == 6:
                     soundSources[y][x].queue(row_seven_audio)
+                elif y == 7:
+                    soundSources[y][x].queue(row_eight_audio)
                 # Informing the SoundSink about the SoundSource so it knows a new sound emitter is available
                 soundsink.play(soundSources[y][x])
 
