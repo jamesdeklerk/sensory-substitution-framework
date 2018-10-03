@@ -77,7 +77,7 @@ SSF is a ROS (Robot Operating System) based Framework for Sensory Substitution
     - In the same terminal, run <code>rostopic list</code>
 3. To start recording the topics, in the same terminal, run <code>rosbag record topic_name_x topic_name_y topic_name_etc</code>
     - You can record as many topics as you like, in the above example, the data from 3 topics are being recorded, topics topic_name_x topic_name_y topic_name_etc
-    - For example, if you wanted to record the depth and rgb info from a RealSense D435 or D415 (for which the relevant topics are: */camera/depth/image_ct_raw* and */camera/color/image_raw*), you would run <code>rosbag record /camera/depth/image_ct_raw /camera/color/image_raw</code>
+    - For example, if you wanted to record the depth and rgb info from a RealSense D435 or D415 (for which the relevant topics are: */camera/depth/image_ct_raw* and */camera/color/image_raw*), you would run <code>rosbag record /processed_color_image /processed_depth_image</code>
 4. To stop the recording press **ctrl + c**
     - The recording of the chosen topics will be saved in a .bag file in the current directory, with the file name being a timestamp (e.g. *2018-09-13-23-59-01.bag*).
 

@@ -52,34 +52,36 @@ def depth_callback(depth_data):
     processed_depth_image_pub.publish(bridge.cv2_to_imgmsg(depth_image_scaled, "32FC1"))
 
 
-# def color_callback(color_data):
+def color_callback(color_data):
 
-#     color_image = bridge.imgmsg_to_cv2(color_data, desired_encoding="passthrough")
+    color_image = bridge.imgmsg_to_cv2(color_data, desired_encoding="bgr8")
 
-#     color_image_width = len(color_image[0])
-#     color_image_height = len(color_image)
+    color_image_width = len(color_image[0])
+    color_image_height = len(color_image)
 
-#     color_image_ratio = color_image_width / (color_image_height * 1.0)
-#     color_image_scaled_height = int(color_image_scaled_width / color_image_ratio)
+    color_image_ratio = color_image_width / (color_image_height * 1.0)
+    color_image_scaled_height = int(color_image_scaled_width / color_image_ratio)
 
-#     # INTER_LINEAR is used by default if no interpolation is specified
-#     color_image_scaled = cv2.resize(color_image, (color_image_scaled_width, color_image_scaled_height), interpolation=INTERPOLATION_DICT[interpolation_used])
+    # INTER_LINEAR is used by default if no interpolation is specified
+    color_image_scaled = cv2.resize(color_image, (color_image_scaled_width, color_image_scaled_height), interpolation=INTERPOLATION_DICT[interpolation_used])
 
-#     # Create image from the image array
-#     # output_image_array = [[color_image[30][30],color_image[30][610]],[color_image[450][30],color_image[450][610]]]
-#     # output_image = np.array(color_image, dtype=np.float32)
-#     processed_color_image_pub.publish(bridge.cv2_to_imgmsg(color_image_scaled, "passthrough"))
+    # Create image from the image array
+    # output_image_array = [[color_image[30][30],color_image[30][610]],[color_image[450][30],color_image[450][610]]]
+    # output_image = np.array(color_image, dtype=np.float32)
+    processed_color_image_pub.publish(bridge.cv2_to_imgmsg(color_image_scaled, "bgr8"))
 
 
 def main():
     rospy.init_node('preprocessor', anonymous=True)
     print('NODE RUNNING: preprocessor')
+    print('color_image_scaled_width: {}px'.format(color_image_scaled_width))
+    print('depth_image_scaled_width: {}px'.format(depth_image_scaled_width))
 
     # Get depth image from depth camera
     rospy.Subscriber(depth_image_topic, Image, depth_callback)
 
     # Get depth image from color camera
-    # rospy.Subscriber(color_image_topic, Image, color_callback)
+    rospy.Subscriber(color_image_topic, Image, color_callback)
 
     rospy.spin()
 
