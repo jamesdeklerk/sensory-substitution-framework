@@ -1,0 +1,26 @@
+<!-- 
+    This file loads all the standard items, hence:
+
+    This file loads the default parameters and then launches:
+        - The dynamic parameters server
+        - The pre-processor (pp)
+    The dynamic parameters server in turn is resposible for launching
+    and managing:
+        - The current retinal encoder (re)
+        - The current sound generator (sg)
+    along with their respective dynamic parameters.
+-->
+
+<launch>
+
+    <arg name="cfg_directory" value="$(find ssf_package)/cfg" />
+    <!-- Load the static parameters from the ROS Parameter Server -->
+    <rosparam command="load" file="$(arg cfg_directory)/default_parameters.yaml" />
+
+    <!-- Launch the pre-processor (pp) -->
+	<node pkg="ssf_package" type="preprocessor.py" name="preprocessor" output="screen"></node>
+
+    <!-- Boot up the dynamic_reconfigure server -->
+	<node pkg="ssf_package" type="dynamic_parameters_server.py" name="dynamic_parameters_server" output="screen"></node>
+
+</launch>

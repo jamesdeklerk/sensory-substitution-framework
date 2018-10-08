@@ -32,27 +32,27 @@ def parameter_changed_callback(config, level):
     global current_retinal_encoder_algorithm, current_sound_generator_algorithm
 
     # Update the retinal encoder algorithm if need be
-    if (current_retinal_encoder_algorithm != config.RE_algorithm):
+    if (current_retinal_encoder_algorithm != config.re_algorithm):
         try:
-            launch_node("ssf_package", config.RE_algorithm + "_retinal_encoder.py",
+            launch_node("ssf_package", config.re_algorithm + "_retinal_encoder.py",
                         "retinal_encoder", True)
         except Exception:
-            rospy.logerr("Looks like something went wrong running that RE_algorithm, are you sure '" +
-                         config.RE_algorithm + "' is a valid algorithm?")
+            rospy.logerr("Looks like something went wrong running that re_algorithm, are you sure '" +
+                         config.re_algorithm + "' is a valid algorithm?")
         else:
-            current_retinal_encoder_algorithm = config.RE_algorithm
+            current_retinal_encoder_algorithm = config.re_algorithm
             rospy.logwarn("retinal_encoder_algorithm changed to: " + current_retinal_encoder_algorithm)
 
     # Update the sound generator algorithm if need be
-    if (current_sound_generator_algorithm != config.SG_algorithm):
+    if (current_sound_generator_algorithm != config.sg_algorithm):
         try:
-            launch_node("ssf_package", config.SG_algorithm + "_sound_generator.py",
+            launch_node("ssf_package", config.sg_algorithm + "_sound_generator.py",
                         "sound_generator", True)
         except Exception:
-            rospy.logerr("Looks like something went wrong running that SG_algorithm, are you sure '" +
-                         config.SG_algorithm + "' is a valid algorithm?")
+            rospy.logerr("Looks like something went wrong running that sg_algorithm, are you sure '" +
+                         config.sg_algorithm + "' is a valid algorithm?")
         else:
-            current_sound_generator_algorithm = config.SG_algorithm
+            current_sound_generator_algorithm = config.sg_algorithm
             rospy.logwarn("sound_generator_algorithm changed to: " + current_sound_generator_algorithm)
 
     return config

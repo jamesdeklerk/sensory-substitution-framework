@@ -106,7 +106,7 @@ SSF is a ROS (Robot Operating System) based Framework for Sensory Substitution
 4. Then from that terminal run <code>export ROS_IP=___.___.___.___</code> (filling in the IP address found in the previous step)
 5. Then from that terminal run <code>roscore</code>
 6. Then from that terminal run the node you would like to run
-    - e.g. In the same terminal, run <code>roslaunch ssf_package default.launch</code> (recommended)
+    - e.g. In the same terminal, run <code>roslaunch ssf_package evaluation.launch</code> (recommended)
 7. If you want access to a nodes output, when launching that node, you should perform steps 1. 2. 4. 6.
     - e.g. For 6. try running <code>rosbag play -l example.bag</code> (recommended) *NOTE: example.bag will need to be downloaded to the **catkin_workspace** for this to run, see [this](#playback)*
 
