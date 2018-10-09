@@ -1,5 +1,16 @@
 #!/usr/bin/env python
 
+
+# importing the ssf_core module
+import rospkg
+from sys import path as system_path
+from os import path as os_path
+rospack = rospkg.RosPack()
+core_package_path = os_path.join(rospack.get_path('ssf_package'), 'src', 'core')
+system_path.append(core_package_path)
+import ssf_core
+
+
 import roslib
 import sys
 import rospy
@@ -35,6 +46,9 @@ bridge = CvBridge()
 def depth_callback(depth_data):
 
     depth_image = bridge.imgmsg_to_cv2(depth_data, desired_encoding="32FC1")
+
+    # Crop the dead zones off the image
+    depth_image = ssf_core.crop_image(image=depth_image, crop_width_per=0.1, crop_height_per=0)
 
     depth_image_width = len(depth_image[0])
     depth_image_height = len(depth_image)

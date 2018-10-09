@@ -10,21 +10,23 @@ dynamic_parameters_server:
 
 
 depth_camera:
+  min_depth: # in meters
+  max_depth: # in meters
   h_fov: -1
   v_fov: -1
-  # For cropping, set the % of dead zone to remove (set to -1 for no cropping)
-  # e.g. a value of 20 would crop 10% off the left and 10% off the right
-  crop_width: -1  
-  crop_height: -1
+  # For cropping, set the % of dead zone to remove (set to 0 for no cropping)
+  # e.g. a value of 0.2 would crop 10% off the left and 10% off the right
+  crop_width: 0.1 
+  crop_height: 0
 
 
 color_camera:
   h_fov: -1
   v_fov: -1
-  # For cropping, set the % of dead zone to remove (set to -1 for no cropping)
-  # e.g. a value of 20 would crop 10% off the left and 10% off the right
-  crop_width: -1  
-  crop_height: -1
+  # For cropping, set the % of dead zone to remove (set to 0 for no cropping)
+  # e.g. a value of 0.2 would crop 10% off the left and 10% off the right
+  crop_width: 0  
+  crop_height: 0
 
 
 # Preprocessor static values
