@@ -41,32 +41,34 @@ def crop_image(image, crop_width_per=0, crop_height_per=0):
 
 def quantize_depth_image(image, min_depth, max_depth, num_quantization_levels):
     """Quantize a given depth image.
+
+    Example:
+    - For these params:
+        min_depth = 20
+        max_depth = 100
+        num_quantization_levels = 8
+    - This will be generated:
+        quantization_levels = [20.0, 31.4, 42.8, 54.2, 65.7, 77.1, 88.5, 100.0]
+    - For each depth value in the image:
+        0    to <31.4   mapped to   20.0
+        31.4 to <42.8   mapped to   31.4
+        42.8 to <54.2   mapped to   42.8
+        54.2 to <65.7   mapped to   54.2
+        65.7 to <77.1   mapped to   65.7
+        77.1 to <88.5   mapped to   77.1
+        88.5 to <100.0  mapped to   88.8
+        >=100.0         mapped to   100.0
+
     """
 
-    # e.g. 20 to 100 with 8 levels
-    # diff = 100 - 20 = 80
-    # 80 / (8 - 1) = 11.428...
-    # 20.0, 31.4, 42.8, 54.2, 65.7, 77.1, 88.5, 100.0
-
-    # 14    > 20
-    # 25    > 20
-    # 51    > 42.8
-    # 88.5  > 88.5
-    # 200   > 100
-
     quantization_levels = np.linspace(min_depth, max_depth, num_quantization_levels)
+
+    image[image < quantization_levels[1]] = quantization_levels[0]
     
-    def quantize(value):
-        
-        count = 0
-        while value >= quantization_levels[count]:
-            count = count + 1
-            if count >= num_quantization_levels:
-                break
+    for i in xrange(num_quantization_levels - 2):
+        image[(image < quantization_levels[i + 2]) & (image >= quantization_levels[i + 1])] = quantization_levels[i + 1]
+    
+    image[image >= quantization_levels[num_quantization_levels - 1]] = quantization_levels[num_quantization_levels - 1]
 
-        count = count - 1
-        count = 0 if count < 0 else count
-        return quantization_levels[count]
-
-    return np.vectorize(quantize)(image)
+    return image
 

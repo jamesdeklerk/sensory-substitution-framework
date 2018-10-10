@@ -7,6 +7,8 @@
 dynamic_parameters_server:
   re_algorithm: "melosee"  # Retinal Encoder (re)
   sg_algorithm: "melosee"  # Sound Generator (sg)
+  # Below specify general dynamic parameters used for algorithms
+  num_quantization_levels: 8
 
 
 depth_camera:

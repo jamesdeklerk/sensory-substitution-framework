@@ -48,16 +48,17 @@ def depth_callback(depth_data):
     depth_image = bridge.imgmsg_to_cv2(depth_data, desired_encoding="32FC1")
 
     # Crop the dead zones off the image
-    depth_image = ssf_core.crop_image(image=depth_image, crop_width_per=0.1, crop_height_per=0)
+    depth_image_cropped = ssf_core.crop_image(image=depth_image, crop_width_per=0.1, crop_height_per=0)
 
-    depth_image_width = len(depth_image[0])
-    depth_image_height = len(depth_image)
+    depth_image_width = len(depth_image_cropped[0])
+    depth_image_height = len(depth_image_cropped)
 
     depth_image_ratio = depth_image_width / (depth_image_height * 1.0)
     depth_image_scaled_height = int(depth_image_scaled_width / depth_image_ratio)
 
     # INTER_LINEAR is used by default if no interpolation is specified
-    depth_image_scaled = cv2.resize(depth_image, (depth_image_scaled_width, depth_image_scaled_height), interpolation=INTERPOLATION_DICT[interpolation_used])
+    depth_image_scaled = cv2.resize(depth_image_cropped, (depth_image_scaled_width, depth_image_scaled_height),
+                                    interpolation=INTERPOLATION_DICT[interpolation_used])
     depth_image_scaled = depth_image_scaled / 1000.0
 
     # Create image from the image array
