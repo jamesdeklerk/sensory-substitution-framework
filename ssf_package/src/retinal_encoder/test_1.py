@@ -7,6 +7,7 @@ import numpy as np
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
 import math
+from collections import deque
 
 # importing the ssf_core module
 import rospkg
@@ -21,6 +22,7 @@ import ssf_core
 retinal_encoded_image_pub = rospy.Publisher("retinal_encoded_image", Image, queue_size=2)
 bridge = CvBridge()
 
+_temporal_filter_frames = deque([])
 
 # CONFIG - make into config file setting
 depth_image_topic = "processed_depth_image"
@@ -30,57 +32,73 @@ depth_image_topic = "processed_depth_image"
 # TODO: Replace with your algorithm
 def test_1_retinal_encoder_algorithm(depth_image):
 
-    # Quantize the image
-    quantized_depth_image = ssf_core.quantize_depth_image(depth_image, 0.4, 5, 8)
+    global _temporal_filter_frames
 
-    # Get min (i.e. closest) from cluster of pixels
-    depth_image_width = len(quantized_depth_image[0])
-    depth_image_height = len(quantized_depth_image)
+    num_frames = 3
+    if len(_temporal_filter_frames) != num_frames:
+        _temporal_filter_frames.append(depth_image.copy())
+    else:  # ready to apply the temporal filter
+        current_frame = depth_image.copy()
+        
+        depth_image = ssf_core.temporal_filter(depth_image, _temporal_filter_frames)
 
-    generated_image_width = 12
-    generated_image_height = 9
+        # Update the frames
+        _temporal_filter_frames.popleft()
+        _temporal_filter_frames.append(current_frame)
+    
+    return depth_image
 
-    step_size_row = depth_image_height / (generated_image_height * 1.0)
-    step_size_column = depth_image_width / (generated_image_width * 1.0)
+    # # Quantize the image
+    # quantized_depth_image = ssf_core.quantize_depth_image(depth_image, 0.4, 5, 8)
 
-    # NOTE: Uncomment to draw column sections on image
+    # # Get min (i.e. closest) from cluster of pixels
+    # depth_image_width = len(quantized_depth_image[0])
+    # depth_image_height = len(quantized_depth_image)
+
+    # generated_image_width = 8
+    # generated_image_height = 5
+
+    # step_size_row = depth_image_height / (generated_image_height * 1.0)
+    # step_size_column = depth_image_width / (generated_image_width * 1.0)
+
+    # # NOTE: Uncomment to draw column sections on image
+    # # for column in xrange(generated_image_width):
+    # #     for row in xrange(depth_image_height):
+
+    # #         start_col_pixel = int(math.floor(column * step_size_column))
+    # #         quantized_depth_image[row][start_col_pixel] = 0
+
+    # #         end_col_pixel = int(math.floor((column * step_size_column) + (step_size_column - 1)))
+    # #         quantized_depth_image[row][end_col_pixel] = 100
+
+    # # NOTE: Uncomment to draw row sections on image
+    # # for column in xrange(depth_image_width):
+    # #     for row in xrange(generated_image_height):
+
+    # #         start_row_pixel = int(math.floor(row * step_size_row))
+    # #         quantized_depth_image[start_row_pixel][column] = 0
+
+    # #         end_row_pixel = int(math.floor((row * step_size_row) + (step_size_row - 1)))
+    # #         quantized_depth_image[end_row_pixel][column] = 100
+
+    # generated_image = np.zeros((generated_image_height, generated_image_width), dtype=np.float32)
     # for column in xrange(generated_image_width):
-    #     for row in xrange(depth_image_height):
-
-    #         start_col_pixel = int(math.floor(column * step_size_column))
-    #         quantized_depth_image[row][start_col_pixel] = 0
-
-    #         end_col_pixel = int(math.floor((column * step_size_column) + (step_size_column - 1)))
-    #         quantized_depth_image[row][end_col_pixel] = 100
-
-    # NOTE: Uncomment to draw row sections on image
-    # for column in xrange(depth_image_width):
     #     for row in xrange(generated_image_height):
 
+    #         start_col_pixel = int(math.floor(column * step_size_column))
+    #         end_col_pixel = int(math.floor((column * step_size_column) + (step_size_column - 1)))
+            
     #         start_row_pixel = int(math.floor(row * step_size_row))
-    #         quantized_depth_image[start_row_pixel][column] = 0
-
     #         end_row_pixel = int(math.floor((row * step_size_row) + (step_size_row - 1)))
-    #         quantized_depth_image[end_row_pixel][column] = 100
-
-    generated_image = np.zeros((generated_image_height, generated_image_width), dtype=np.float32)
-    for column in xrange(generated_image_width):
-        for row in xrange(generated_image_height):
-
-            start_col_pixel = int(math.floor(column * step_size_column))
-            end_col_pixel = int(math.floor((column * step_size_column) + (step_size_column - 1)))
             
-            start_row_pixel = int(math.floor(row * step_size_row))
-            end_row_pixel = int(math.floor((row * step_size_row) + (step_size_row - 1)))
-            
-            generated_image[row][column] = ssf_core.min_value_in_section(
-                                                                         quantized_depth_image,
-                                                                         start_col_pixel,
-                                                                         end_col_pixel,
-                                                                         start_row_pixel,
-                                                                         end_row_pixel)
+    #         generated_image[row][column] = ssf_core.min_value_in_section(
+    #                                                                      quantized_depth_image,
+    #                                                                      start_col_pixel,
+    #                                                                      end_col_pixel,
+    #                                                                      start_row_pixel,
+    #                                                                      end_row_pixel)
 
-    return generated_image
+    # return generated_image
 # ------------------------------------------------------------------------------------
 
 

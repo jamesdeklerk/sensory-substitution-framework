@@ -159,6 +159,7 @@ rosrun rqt_reconfigure rqt_reconfigure
     - <code>pip install matplotlib</code>
     - <code>sudo apt-get install libalut-dev</code>
     - <code>sudo apt-get install libopenal-dev</code>
+    - <code>sudo apt-get install python-scipy</code>
 - Convert .bag file to video (.mp4) for uploading to YouTube
 
 ---

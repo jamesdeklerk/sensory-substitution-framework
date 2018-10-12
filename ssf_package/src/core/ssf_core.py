@@ -3,12 +3,9 @@
 
 import rospy
 import math
-from collections import deque
+import warnings
 import numpy as np
 from scipy import stats
-
-
-temporal_filter_frames = deque([])
 
 
 def crop_image(image, crop_width_per=0, crop_height_per=0):
@@ -52,28 +49,25 @@ def quantize_depth_image(image,
     """Quantize a given depth image.
 
     Example:
-    - For these params:
-        min_depth = 20
-        max_depth = 100
-        num_quantization_levels = 8
-    - This will be generated:
-        quantization_levels = [20.0, 31.4, 42.8, 54.2, 65.7, 77.1, 88.5, 100.0]
-    - For each depth value in the image:
-        0    to <31.4   mapped to   20.0
-        31.4 to <42.8   mapped to   31.4
-        42.8 to <54.2   mapped to   42.8
-        54.2 to <65.7   mapped to   54.2
-        65.7 to <77.1   mapped to   65.7
-        77.1 to <88.5   mapped to   77.1
-        88.5 to <100.0  mapped to   88.8
-        >=100.0         mapped to   100.0
+        For these params:
+            min_depth = 20
+            max_depth = 100
+            num_quantization_levels = 8
+        This will be generated:
+            quantization_levels = [20.0, 31.4, 42.8, 54.2, 65.7, 77.1, 88.5, 100.0]
+        For each depth value in the image:
+            0    to <31.4   mapped to   20.0
+            31.4 to <42.8   mapped to   31.4
+            42.8 to <54.2   mapped to   42.8
+            54.2 to <65.7   mapped to   54.2
+            65.7 to <77.1   mapped to   65.7
+            77.1 to <88.5   mapped to   77.1
+            88.5 to <100.0  mapped to   88.8
+            >=100.0         mapped to   100.0
 
     """
 
     quantization_levels = np.linspace(min_depth, max_depth, num_quantization_levels)
-
-    # If anything is 0, that means it was out of range (either too far or too close)
-    image[image == 0.0] = np.nan
 
     image[image < quantization_levels[1]] = quantization_levels[0]
     
@@ -90,39 +84,58 @@ def mode(nparray):
     return stats.mode(flat_nparray)[0][0]
 
 
-def temporal_filter(image, num_frames):
-    """NOTE: The temporal filter can only be called in one place.
+def temporal_filter(depth_image, filter_frames):
+    """Averages the pixel values across frames
 
-    The temporal filter reduces flickering in the depth image
+    The temporal filter reduces flickering in the depth image by averaging
+    the pixel values across frames. Aditionally NaN values are not included
+    in the averaging process (i.e. average of [3, NaN, 3] is 3, not 2),
+    this helps reduce flickering and depth mismatches.
 
-    TODO: Improve temporal filter by making it that that
-          total_frame_count doesn't include the NaN values,
-          this means that the total_frame_count would need to be
-          done for each pixel...
-          The result of correctly implementing this would be to
-          temporally fill the NaN values.
+    Args:
+        depth_image: A depth image in numpy array format
+        filter_frames: a list of depth_image frames used for filtering,
+            this is usually the previous +-3 frames
+
+    Returns:
+        The image with the temporal filter applied
+
+    Usage Example:
+        # At the top of the file add these two lines:
+        # from collections import deque
+        # _temporal_filter_frames = deque([])
+        
+        # Then in the frame callback function, add the rest found below
+        global _temporal_filter_frames
+
+        num_frames = 3
+        if len(_temporal_filter_frames) != num_frames:
+            _temporal_filter_frames.append(depth_image.copy())
+        else:  # ready to apply the temporal filter
+            current_frame = depth_image.copy()
+            
+            depth_image = ssf_core.temporal_filter(depth_image, _temporal_filter_frames)
+
+            # Update the frames
+            _temporal_filter_frames.popleft()
+            _temporal_filter_frames.append(current_frame)
+        
+        return depth_image
+
     """
 
-    global temporal_filter_frames
+    # Blend the frames (i.e. take the average)
+    combined_array = [depth_image]
+    for frame in filter_frames:
+        combined_array.append(frame)
 
-    if len(temporal_filter_frames) != num_frames:
-        temporal_filter_frames.append(image.copy())
-        return image
-    else:
-        current_frame = image.copy()
+    combined_array = np.array(combined_array)
 
-        # Blend the frames (i.e. take the average)
-        for frame in temporal_filter_frames:
-            image = image + frame
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        mean_image = np.nanmean(combined_array, 0)
 
-        total_frame_count = (len(temporal_filter_frames) + 1.0)
-        image = image / total_frame_count
-
-        # Update the frames
-        temporal_filter_frames.popleft()
-        temporal_filter_frames.append(current_frame)
-
-        return image
+    return mean_image
 
 
 def min_value_in_section(nparray,

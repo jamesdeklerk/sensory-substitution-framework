@@ -59,6 +59,13 @@ def depth_callback(depth_data):
                                     interpolation=INTERPOLATION_DICT[interpolation_used])
     depth_image_scaled = depth_image_scaled / 1000.0
 
+    # When the image is scaled using cv2.resize, all NaN's are set to 0, hence 
+    # If anything is 0, that means it was out of range (either too far
+    # or too close), so we reset it to NaN
+    # NOTE: If they are not set to NaN, things like ssf_core.temporal_filter
+    #       won't work as expected.
+    depth_image_scaled[depth_image_scaled == 0.0] = np.nan
+
     # Create image from the image array
     # output_image_array = [[depth_image[30][30],depth_image[30][610]],[depth_image[450][30],depth_image[450][610]]]
     # output_image = np.array(depth_image, dtype=np.float32)
