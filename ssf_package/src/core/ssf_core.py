@@ -43,19 +43,13 @@ def crop_image(image, crop_width_per=0, crop_height_per=0):
 
 
 def quantize_depth_image(image,
-                         min_depth,
-                         max_depth,
-                         num_quantization_levels):
+                         quantization_levels):
     """Quantize a given depth image.
 
     Example:
         For these params:
-            min_depth = 20
-            max_depth = 100
-            num_quantization_levels = 8
-        This will be generated:
             quantization_levels = [20.0, 31.4, 42.8, 54.2, 65.7, 77.1, 88.5, 100.0]
-        For each depth value in the image:
+        Each depth value in the image:
             0    to <31.4   mapped to   20.0
             31.4 to <42.8   mapped to   31.4
             42.8 to <54.2   mapped to   42.8
@@ -66,8 +60,8 @@ def quantize_depth_image(image,
             >=100.0         mapped to   100.0
 
     """
-
-    quantization_levels = np.linspace(min_depth, max_depth, num_quantization_levels)
+    
+    num_quantization_levels = len(quantization_levels)
 
     image[image < quantization_levels[1]] = quantization_levels[0]
     
