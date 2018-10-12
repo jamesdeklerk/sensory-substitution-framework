@@ -13,11 +13,12 @@ bridge = CvBridge()
 
 
 # CONFIG - make into config file setting
-depth_image_topic = "camera/depth/image_rect_raw"
+depth_image_topic = "processed_depth_image"
 
 
 # ------------------------------------------------------------------------------------
 # TODO: Replace with your algorithm
+#       The default template algorithm simply scales the image down
 def template_retinal_encoder_algorithm(depth_image_cv2_format):
     depth_image_width = len(depth_image_cv2_format[0])
     depth_image_height = len(depth_image_cv2_format)
@@ -39,7 +40,9 @@ def depth_callback(depth_image_imgmsg_format):
     depth_image_cv2_format = bridge.imgmsg_to_cv2(depth_image_imgmsg_format, desired_encoding="32FC1")
 
     # Standardised depth image units (to meters)
-    depth_image_cv2_format = depth_image_cv2_format / (1000 * 1.0)
+    # NOTE: Uncomment line below if not using preprocessor 
+    # depth_image_cv2_format = depth_image_cv2_format / (1000 * 1.0)
+
     # --------------------------------------------------------------------------------
     # TODO: Replace with your algorithm
     retinal_encoded_image = template_retinal_encoder_algorithm(depth_image_cv2_format)
@@ -62,6 +65,7 @@ def parameter_changed_callback(config):
 
 def main():
     rospy.init_node("template_retinal_encoder")
+    print('NODE RUNNING: template_retinal_encoder')
 
     # Connect to dynamic_reconfigure server
     dynamic_reconfigure.client.Client("dynamic_parameters_server",

@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 
+import roslib
+import sys
+import rospy
+import cv2
+import numpy as np
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge, CvBridgeError
 
 # importing the ssf_core module
 import rospkg
@@ -9,15 +16,6 @@ rospack = rospkg.RosPack()
 core_package_path = os_path.join(rospack.get_path('ssf_package'), 'src', 'core')
 system_path.append(core_package_path)
 import ssf_core
-
-
-import roslib
-import sys
-import rospy
-import cv2
-import numpy as np
-from sensor_msgs.msg import Image
-from cv_bridge import CvBridge, CvBridgeError
 
 
 # https://docs.opencv.org/2.4/modules/imgproc/doc/geometric_transformations.html#resize
@@ -33,7 +31,7 @@ INTERPOLATION_DICT = {
 # CONFIG - make into config file setting
 depth_image_topic = "camera/depth/image_rect_raw"
 color_image_topic = "camera/color/image_raw"
-interpolation_used = "INTER_LINEAR"
+interpolation_used = "INTER_NEAREST"
 depth_image_scaled_width = 96  # depth_image_scaled_height is calculated based on the original image ratio
 color_image_scaled_width = 96  # color_image_scaled_height is calculated based on the original image ratio
 
