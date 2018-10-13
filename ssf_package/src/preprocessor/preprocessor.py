@@ -20,11 +20,11 @@ import ssf_core
 
 # https://docs.opencv.org/2.4/modules/imgproc/doc/geometric_transformations.html#resize
 INTERPOLATION_DICT = {
-    "INTER_NEAREST": cv2.INTER_NEAREST,
-    "INTER_LINEAR": cv2.INTER_LINEAR,  # cv2 default
-    "INTER_AREA": cv2.INTER_AREA,
-    "INTER_CUBIC": cv2.INTER_CUBIC,
-    "INTER_LANCZOS4": cv2.INTER_LANCZOS4
+    "INTER_NEAREST":    cv2.INTER_NEAREST,
+    "INTER_LINEAR":     cv2.INTER_LINEAR,  # cv2 default
+    "INTER_AREA":       cv2.INTER_AREA,
+    "INTER_CUBIC":      cv2.INTER_CUBIC,
+    "INTER_LANCZOS4":   cv2.INTER_LANCZOS4
 }
 
 
@@ -36,8 +36,10 @@ depth_image_scaled_width = 96  # depth_image_scaled_height is calculated based o
 color_image_scaled_width = 96  # color_image_scaled_height is calculated based on the original image ratio
 
 
-processed_depth_image_pub = rospy.Publisher("processed_depth_image", Image, queue_size=2)
-processed_color_image_pub = rospy.Publisher("processed_color_image", Image, queue_size=2)
+processed_depth_image_pub = rospy.Publisher("processed_depth_image",
+                                            Image, queue_size=2)
+processed_color_image_pub = rospy.Publisher("processed_color_image",
+                                            Image, queue_size=2)
 bridge = CvBridge()
 
 

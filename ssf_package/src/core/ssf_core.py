@@ -1,5 +1,10 @@
-# This module contains commonly used functions for the
-# Sensory Substitution Framework (SSF)
+
+"""Sensory Substitution Framework (SSF) Core
+
+This module contains commonly used functions for the
+Sensory Substitution Framework.
+
+"""
 
 import rospy
 import math
@@ -8,8 +13,22 @@ import numpy as np
 from scipy import stats
 
 
+def crop_ndarray(ndarray,
+                 x_start_index,
+                 x_end_index,
+                 y_start_index,
+                 y_end_index):
+    """Crop ndarray by index
+
+    NOTE:
+    - x_end_index is inclusive of the index given
+    - y_end_index is inclusive of the index given
+    """
+    return ndarray[y_start_index:(y_end_index + 1), x_start_index:(x_end_index + 1)]
+
+
 def crop_image(image, crop_width_per=0, crop_height_per=0):
-    """Crop the given image.
+    """Crop the given image by percent
 
     This function crops (crop_width_per / 2.0)% from the left 
     and (crop_width_per / 2.0)% from the right of the image.
@@ -39,7 +58,7 @@ def crop_image(image, crop_width_per=0, crop_height_per=0):
         y_start_index = 0
         y_end_index = (image_height - 1)
 
-    return image[y_start_index:(y_end_index + 1), x_start_index:(x_end_index + 1)]
+    return crop_ndarray(image, x_start_index, x_end_index, y_start_index, y_end_index)
 
 
 def quantize_depth_image(image,
@@ -60,7 +79,7 @@ def quantize_depth_image(image,
             >=100.0         mapped to   100.0
 
     """
-    
+
     num_quantization_levels = len(quantization_levels)
 
     image[image < quantization_levels[1]] = quantization_levels[0]
@@ -73,9 +92,18 @@ def quantize_depth_image(image,
     return image
 
 
-def mode(nparray):
-    flat_nparray = nparray.flatten()
-    return stats.mode(flat_nparray)[0][0]
+def min_in_ndarray(ndarray):
+    """Returns the min value in the given ndarray"""
+    return np.nanmin(ndarray)
+
+
+def mode_of_ndarray(ndarray):
+    """Calculate the mode of a given ndarray.
+
+    The mode is the most frequently occuring number found in a given set
+    """
+    flat_ndarray = ndarray.flatten()
+    return stats.mode(flat_ndarray)[0][0]
 
 
 def temporal_filter(depth_image, filter_frames):
@@ -130,20 +158,3 @@ def temporal_filter(depth_image, filter_frames):
         mean_image = np.nanmean(combined_array, 0)
 
     return mean_image
-
-
-def min_value_in_section(nparray,
-                         x_start_index, 
-                         x_end_index, 
-                         y_start_index, 
-                         y_end_index):
-    """Returns the min value in the specified section of the given nparray
-
-    NOTE:
-    - x_end_index is inclusive of the index given
-    - y_end_index is inclusive of the index given
-    """
-    
-    nparray_subsection = nparray[y_start_index:(y_end_index + 1), x_start_index:(x_end_index + 1)]
-
-    return np.nanmin(nparray_subsection)

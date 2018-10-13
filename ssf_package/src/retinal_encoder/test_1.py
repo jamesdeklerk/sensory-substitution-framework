@@ -28,10 +28,7 @@ _temporal_filter_frames = deque([])
 depth_image_topic = "processed_depth_image"
 
 
-# ------------------------------------------------------------------------------------
-# TODO: Replace with your algorithm
-def test_1_retinal_encoder_algorithm(depth_image):
-
+def temporal_filter(depth_image, num_frames):
     global _temporal_filter_frames
 
     num_frames = 3
@@ -45,6 +42,14 @@ def test_1_retinal_encoder_algorithm(depth_image):
         # Update the frames
         _temporal_filter_frames.popleft()
         _temporal_filter_frames.append(current_frame)
+
+    return depth_image
+
+
+# ------------------------------------------------------------------------------------
+def test_1_retinal_encoder_algorithm(depth_image):
+
+    depth_image = temporal_filter(depth_image, 3)
 
     # Quantize the image
     # TODO: When creating the quantization_levels, mimic how human
@@ -94,12 +99,12 @@ def test_1_retinal_encoder_algorithm(depth_image):
             start_row_pixel = int(math.floor(row * step_size_row))
             end_row_pixel = int(math.floor((row * step_size_row) + (step_size_row - 1)))
             
-            generated_image[row][column] = ssf_core.min_value_in_section(
-                                                                         quantized_depth_image,
-                                                                         start_col_pixel,
-                                                                         end_col_pixel,
-                                                                         start_row_pixel,
-                                                                         end_row_pixel)
+            ndarray_subsection = ssf_core.crop_ndarray(quantized_depth_image,
+                                                       start_col_pixel,
+                                                       end_col_pixel,
+                                                       start_row_pixel,
+                                                       end_row_pixel)
+            generated_image[row][column] = ssf_core.mode_of_ndarray(ndarray_subsection)
 
     return generated_image
 # ------------------------------------------------------------------------------------
@@ -114,8 +119,6 @@ def depth_callback(depth_image_imgmsg_format):
     # TODO: Replace with your algorithm
     retinal_encoded_image = test_1_retinal_encoder_algorithm(depth_image_cv2_format)
     # --------------------------------------------------------------------------------
-
-    
 
     # convert OpenCV Image to ROS Image message
     retinal_encoded_image_imgmsg_format = bridge.cv2_to_imgmsg(retinal_encoded_image, "32FC1")
