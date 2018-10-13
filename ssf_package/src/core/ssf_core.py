@@ -9,6 +9,7 @@ Sensory Substitution Framework.
 import rospy
 import math
 import warnings
+import cv2
 import numpy as np
 from scipy import stats
 
@@ -59,6 +60,29 @@ def crop_image(image, crop_width_per=0, crop_height_per=0):
         y_end_index = (image_height - 1)
 
     return crop_ndarray(image, x_start_index, x_end_index, y_start_index, y_end_index)
+
+
+def k_means(depth_image, num_clusters, min_depth, max_depth):
+    rows = len(depth_image)
+    columns = len(depth_image[0])
+    depth_image = depth_image.reshape((rows * columns, 1))
+
+    depth_image[depth_image < min_depth] = min_depth
+    depth_image[depth_image > max_depth] = max_depth
+
+    depth_image[np.isnan(depth_image)] = 9999999
+
+    # define criteria
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
+    # apply kmeans()
+    ret, label, k_center_values = cv2.kmeans(depth_image, num_clusters, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+
+    res = k_center_values[label.flatten()]
+    depth_image = res.reshape((rows, columns))
+
+    depth_image[depth_image == 9999999] = np.nan
+
+    return depth_image
 
 
 def quantize_depth_image(image,
@@ -152,6 +176,7 @@ def temporal_filter(depth_image, filter_frames):
         combined_array.append(frame)
 
     combined_array = np.array(combined_array)
+    combined_array[combined_array == 0.0] = np.nan
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)

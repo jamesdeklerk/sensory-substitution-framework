@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
+from collections import deque
 
 # importing the ssf_core module
 import rospkg
@@ -43,12 +44,36 @@ processed_color_image_pub = rospy.Publisher("processed_color_image",
 bridge = CvBridge()
 
 
+_temporal_filter_frames = deque([])
+
+
+def temporal_filter(depth_image, num_frames):
+    global _temporal_filter_frames
+
+    num_frames = 3
+    if len(_temporal_filter_frames) != num_frames:
+        _temporal_filter_frames.append(depth_image.copy())
+    else:  # ready to apply the temporal filter
+        current_frame = depth_image.copy()
+        
+        depth_image = ssf_core.temporal_filter(depth_image, _temporal_filter_frames)
+
+        # Update the frames
+        _temporal_filter_frames.popleft()
+        _temporal_filter_frames.append(current_frame)
+
+    return depth_image
+
+
 def depth_callback(depth_data):
 
     depth_image = bridge.imgmsg_to_cv2(depth_data, desired_encoding="32FC1")
 
     # Crop the dead zones off the image
     depth_image_cropped = ssf_core.crop_image(image=depth_image, crop_width_per=0.1, crop_height_per=0)
+
+    # Apply a temporal filter
+    depth_image_cropped = temporal_filter(depth_image_cropped, 2)
 
     depth_image_width = len(depth_image_cropped[0])
     depth_image_height = len(depth_image_cropped)

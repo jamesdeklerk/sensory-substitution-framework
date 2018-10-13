@@ -49,14 +49,14 @@ def temporal_filter(depth_image, num_frames):
 # ------------------------------------------------------------------------------------
 def test_1_retinal_encoder_algorithm(depth_image):
 
-    depth_image = temporal_filter(depth_image, 3)
+    depth_image = temporal_filter(depth_image, 2)
 
     # Quantize the image
     # TODO: When creating the quantization_levels, mimic how human
     #       depth perception attenuates
     #       OR
     #       Mimic how Auditory Depth attenuation
-    quantization_levels = [0.2, 0.35, 0.5, 0.65, 0.8, 1.0, 1.4, 1.8, 2.3, 2.9, 3.6]
+    quantization_levels = [0.2, 0.35, 0.5, 0.65, 0.8, 1.0, 1.4, 1.8, 2.3, 2.9, 3.6, 4, 5]
     quantized_depth_image = ssf_core.quantize_depth_image(depth_image, quantization_levels)
 
     # Get min (i.e. closest) from cluster of pixels
