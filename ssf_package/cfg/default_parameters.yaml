@@ -4,8 +4,8 @@
 depth_camera:
   min_depth: 0.2 # in meters
   max_depth: 5.0 # in meters
-  h_fov: -1  # original FoV (i.e. ignoring crop)
-  v_fov: -1  # original FoV (i.e. ignoring crop)
+  h_fov: 91.2  # original FoV (i.e. ignoring crop)
+  v_fov: 65.5  # original FoV (i.e. ignoring crop)
   # For cropping, set the % of dead zone to remove (set to 0 for no cropping)
   # e.g. a value of 0.2 would crop 10% off the left and 10% off the right
   crop_width_percentage: 0.1 
@@ -17,12 +17,12 @@ depth_camera:
 
 
 color_camera:
-  h_fov: -1  # original FoV (i.e. ignoring crop)
-  v_fov: -1  # original FoV (i.e. ignoring crop)
+  h_fov: 69.4  # original FoV (i.e. ignoring crop)
+  v_fov: 42.5  # original FoV (i.e. ignoring crop)
   # For cropping, set the % of dead zone to remove (set to 0 for no cropping)
   # e.g. a value of 0.2 would crop 10% off the left and 10% off the right
-  crop_width: 0  
-  crop_height: 0
+  crop_width_percentage: 0  
+  crop_height_percentage: 0
 
 
 # Preprocessor static values

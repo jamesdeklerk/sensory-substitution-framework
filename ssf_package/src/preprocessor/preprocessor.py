@@ -45,8 +45,8 @@ num_temporal_filter_frames = pp_general_params["num_temporal_filter_frames"]
 
 # Depth camera params
 depth_camera_params = rospy.get_param("/depth_camera")
-crop_width_percentage = depth_camera_params["crop_width_percentage"]
-crop_height_percentage = depth_camera_params["crop_height_percentage"]
+depth_camera_crop_width_percentage = depth_camera_params["crop_width_percentage"]
+depth_camera_crop_height_percentage = depth_camera_params["crop_height_percentage"]
 depth_value_divisor = depth_camera_params["depth_value_divisor"]
 
 # Other globals
@@ -86,8 +86,8 @@ def depth_callback(depth_data):
 
     # Crop the dead zones off the image
     depth_image_cropped = ssf_core.crop_image(image=depth_image,
-                                              crop_width_per=crop_width_percentage,
-                                              crop_height_per=crop_height_percentage)
+                                              crop_width_per=depth_camera_crop_width_percentage,
+                                              crop_height_per=depth_camera_crop_height_percentage)
 
     # Apply a temporal filter
     depth_image_cropped = temporal_filter(depth_image_cropped, num_temporal_filter_frames)
