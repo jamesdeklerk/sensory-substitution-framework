@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 """Sensory Substitution Framework (SSF) Core
 
@@ -12,6 +13,24 @@ import warnings
 import cv2
 import numpy as np
 from scipy import stats
+
+
+def check_algorithm_name(algorithm_name):
+    invalid_names = ["pp",
+                     "re",
+                     "sg",
+                     "color_camera",
+                     "depth_camera",
+                     "dynamic_parameters_server",
+                     "rosdistro",
+                     "rosversion",
+                     "test_1"]
+
+    for invalid_name in invalid_names:
+        if algorithm_name == invalid_name:
+            print("WARNING: The following algorithm names are invalid: {},\
+                  please change your algorithm name to avoid errors"
+                  .format(invalid_names))
 
 
 def crop_ndarray(ndarray,
@@ -70,7 +89,7 @@ def k_means(depth_image, num_clusters, min_depth, max_depth):
     depth_image[depth_image < min_depth] = min_depth
     depth_image[depth_image > max_depth] = max_depth
 
-    depth_image[np.isnan(depth_image)] = 9999999
+    depth_image[np.isnan(depth_image)] = 0.0
 
     # define criteria
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
@@ -80,13 +99,13 @@ def k_means(depth_image, num_clusters, min_depth, max_depth):
     res = k_center_values[label.flatten()]
     depth_image = res.reshape((rows, columns))
 
-    depth_image[depth_image == 9999999] = np.nan
+    depth_image[depth_image == 0.0] = np.nan
 
     return depth_image
 
 
-def quantize_depth_image(image,
-                         quantization_levels):
+def quantize(depth_image,
+             quantization_levels):
     """Quantize a given depth image.
 
     Example:
@@ -104,16 +123,22 @@ def quantize_depth_image(image,
 
     """
 
-    num_quantization_levels = len(quantization_levels)
+    with warnings.catch_warnings():
+        # ignore all the warnings that occur when handling NaN's 
+        warnings.simplefilter("ignore", category=RuntimeWarning)
 
-    image[image < quantization_levels[1]] = quantization_levels[0]
-    
-    for i in xrange(num_quantization_levels - 2):
-        image[(image < quantization_levels[i + 2]) & (image >= quantization_levels[i + 1])] = quantization_levels[i + 1]
-    
-    image[image >= quantization_levels[num_quantization_levels - 1]] = quantization_levels[num_quantization_levels - 1]
+        num_quantization_levels = len(quantization_levels)
 
-    return image
+        depth_image[depth_image < quantization_levels[1]] = quantization_levels[0]
+        
+        for i in xrange(num_quantization_levels - 2):
+            depth_image[(depth_image < quantization_levels[i + 2]) &
+                        (depth_image >= quantization_levels[i + 1])] = quantization_levels[i + 1]
+        
+        depth_image[depth_image >=
+                    quantization_levels[num_quantization_levels - 1]] = quantization_levels[num_quantization_levels - 1]
+
+    return depth_image
 
 
 def min_in_ndarray(ndarray):
@@ -179,7 +204,9 @@ def temporal_filter(depth_image, filter_frames):
     combined_array[combined_array == 0.0] = np.nan
 
     with warnings.catch_warnings():
+        # ignore all the warnings that occur when handling NaN's 
         warnings.simplefilter("ignore", category=RuntimeWarning)
+
         mean_image = np.nanmean(combined_array, 0)
 
     return mean_image

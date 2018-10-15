@@ -19,14 +19,16 @@ from std_msgs.msg import String
 from openal.audio import SoundListener, SoundSink, SoundSource
 from openal.loaders import load_wav_file
 
+sg_input_params = rospy.get_param("/sg/input")
+retinal_encoded_image_topic = sg_input_params["retinal_encoded_image"]["topic"]
+
 bridge = CvBridge()
 
 # Audio globals
 soundSources = []
 soundSourcesSetup = False
 soundsink = SoundSink()  # Opening output device
-retinal_encoded_image_width = 0
-retinal_encoded_image_height = 0
+
 # C-major, the scale of just intonation would be: C=1/1 D=9/8 E=5/4 F= 4/3 G=3/2 A=5/3 B=15/8 C=2/1
 C_4 = 264.0
 D = 297.0  # C_4 * (9.0/8.0)
@@ -59,6 +61,12 @@ def callback(retinal_encoded_data):
     retinal_encoded_image = bridge.imgmsg_to_cv2(
         retinal_encoded_data, desired_encoding="32FC1")
 
+    retinal_encoded_image_width = len(retinal_encoded_image[0])
+    retinal_encoded_image_height = len(retinal_encoded_image)
+
+    if (retinal_encoded_image_width != 8 or retinal_encoded_image_height != 8):
+        rospy.logerr("The retinal_encoded_image must be an 8 x 8 image!!!")
+
     # Loading the audio data
     row_one_audio = load_wav_file(
         sound_folder_location + generate_sound_file_name(C_5))  # top
@@ -77,14 +85,9 @@ def callback(retinal_encoded_data):
     row_eight_audio = load_wav_file(
         sound_folder_location + generate_sound_file_name(C_4))  # bottom
 
-    global retinal_encoded_image_width
-    global retinal_encoded_image_height
     global soundSources
     global soundSourcesSetup
     if not soundSourcesSetup:
-        retinal_encoded_image_width = len(retinal_encoded_image[0])
-        retinal_encoded_image_height = len(retinal_encoded_image)
-
         soundsink.activate()
 
         # Setting up the listner (can actually comment this all out)
@@ -145,8 +148,8 @@ def callback(retinal_encoded_data):
         for x in xrange(retinal_encoded_image_width):
             x_pos = (x - (retinal_encoded_image_width / 2)) * \
                 x_scale_factor          # left is negative
-            y_pos = (-((y + 0.5) - (retinal_encoded_image_height / 2))
-                     ) * y_scale_factor    # up is positive
+            y_pos = (-((y + 0.5) - (retinal_encoded_image_height / 2))) * \
+                y_scale_factor          # up is positive
             # distance
             z_pos = retinal_encoded_image[y][x]
 
@@ -172,7 +175,7 @@ def soundGenerator():
     print('NODE RUNNING: melosee_sound_generator')
 
     # subscribe to retinal encoded image
-    rospy.Subscriber("retinal_encoded_image", Image, callback)
+    rospy.Subscriber(retinal_encoded_image_topic, Image, callback)
 
     rospy.spin()
 

@@ -22,7 +22,7 @@ def launch_node(package_name, executable_file, node_name, output_to_screen):
     # This will automatically shutdown a node with same name launched
     launch = roslaunch.scriptapi.ROSLaunch()
     launch.start()
-    process = launch.launch(node)
+    launch.launch(node)
 
     return node
 

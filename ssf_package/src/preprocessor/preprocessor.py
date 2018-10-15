@@ -19,6 +19,39 @@ system_path.append(core_package_path)
 import ssf_core
 
 
+# ----------------------------------------------------------------
+#                            GLOBALS
+# ----------------------------------------------------------------
+# Input params
+pp_input_params = rospy.get_param("/pp/input")
+depth_image_topic = pp_input_params["depth_image"]["topic"]
+color_image_topic = pp_input_params["color_image"]["topic"]
+
+# Output params
+pp_output_params = rospy.get_param("/pp/output")
+# depth_image_scaled_height is calculated based on the original image ratio
+depth_image_scaled_width = pp_output_params["depth_image"]["width"]
+# color_image_scaled_height is calculated based on the original image ratio
+color_image_scaled_width = pp_output_params["color_image"]["width"]
+processed_depth_image_pub = rospy.Publisher(pp_output_params["depth_image"]["topic"],
+                                            Image, queue_size=2)
+processed_color_image_pub = rospy.Publisher(pp_output_params["color_image"]["topic"],
+                                            Image, queue_size=2)
+
+# General params
+pp_general_params = rospy.get_param("/pp/general")
+interpolation_used = pp_general_params["interpolation_used"]
+num_temporal_filter_frames = pp_general_params["num_temporal_filter_frames"]
+
+# Depth camera params
+depth_camera_params = rospy.get_param("/depth_camera")
+crop_width_percentage = depth_camera_params["crop_width_percentage"]
+crop_height_percentage = depth_camera_params["crop_height_percentage"]
+depth_value_divisor = depth_camera_params["depth_value_divisor"]
+
+# Other globals
+bridge = CvBridge()
+temporal_filter_frames = deque([])
 # https://docs.opencv.org/2.4/modules/imgproc/doc/geometric_transformations.html#resize
 INTERPOLATION_DICT = {
     "INTER_NEAREST":    cv2.INTER_NEAREST,
@@ -27,40 +60,22 @@ INTERPOLATION_DICT = {
     "INTER_CUBIC":      cv2.INTER_CUBIC,
     "INTER_LANCZOS4":   cv2.INTER_LANCZOS4
 }
-
-
-# CONFIG - make into config file setting
-depth_image_topic = "camera/depth/image_rect_raw"
-color_image_topic = "camera/color/image_raw"
-interpolation_used = "INTER_NEAREST"
-depth_image_scaled_width = 96  # depth_image_scaled_height is calculated based on the original image ratio
-color_image_scaled_width = 96  # color_image_scaled_height is calculated based on the original image ratio
-
-
-processed_depth_image_pub = rospy.Publisher("processed_depth_image",
-                                            Image, queue_size=2)
-processed_color_image_pub = rospy.Publisher("processed_color_image",
-                                            Image, queue_size=2)
-bridge = CvBridge()
-
-
-_temporal_filter_frames = deque([])
+# ________________________________________________________________
 
 
 def temporal_filter(depth_image, num_frames):
-    global _temporal_filter_frames
+    global temporal_filter_frames
 
-    num_frames = 3
-    if len(_temporal_filter_frames) != num_frames:
-        _temporal_filter_frames.append(depth_image.copy())
+    if len(temporal_filter_frames) != num_frames:
+        temporal_filter_frames.append(depth_image.copy())
     else:  # ready to apply the temporal filter
         current_frame = depth_image.copy()
         
-        depth_image = ssf_core.temporal_filter(depth_image, _temporal_filter_frames)
+        depth_image = ssf_core.temporal_filter(depth_image, temporal_filter_frames)
 
         # Update the frames
-        _temporal_filter_frames.popleft()
-        _temporal_filter_frames.append(current_frame)
+        temporal_filter_frames.popleft()
+        temporal_filter_frames.append(current_frame)
 
     return depth_image
 
@@ -70,10 +85,12 @@ def depth_callback(depth_data):
     depth_image = bridge.imgmsg_to_cv2(depth_data, desired_encoding="32FC1")
 
     # Crop the dead zones off the image
-    depth_image_cropped = ssf_core.crop_image(image=depth_image, crop_width_per=0.1, crop_height_per=0)
+    depth_image_cropped = ssf_core.crop_image(image=depth_image,
+                                              crop_width_per=crop_width_percentage,
+                                              crop_height_per=crop_height_percentage)
 
     # Apply a temporal filter
-    depth_image_cropped = temporal_filter(depth_image_cropped, 2)
+    depth_image_cropped = temporal_filter(depth_image_cropped, num_temporal_filter_frames)
 
     depth_image_width = len(depth_image_cropped[0])
     depth_image_height = len(depth_image_cropped)
@@ -84,7 +101,8 @@ def depth_callback(depth_data):
     # INTER_LINEAR is used by default if no interpolation is specified
     depth_image_scaled = cv2.resize(depth_image_cropped, (depth_image_scaled_width, depth_image_scaled_height),
                                     interpolation=INTERPOLATION_DICT[interpolation_used])
-    depth_image_scaled = depth_image_scaled / 1000.0
+    # Standardize depth image units (to meters)
+    depth_image_scaled = depth_image_scaled / depth_value_divisor
 
     # When the image is scaled using cv2.resize, all NaN's are set to 0, hence 
     # If anything is 0, that means it was out of range (either too far
@@ -93,9 +111,7 @@ def depth_callback(depth_data):
     #       won't work as expected.
     depth_image_scaled[depth_image_scaled == 0.0] = np.nan
 
-    # Create image from the image array
-    # output_image_array = [[depth_image[30][30],depth_image[30][610]],[depth_image[450][30],depth_image[450][610]]]
-    # output_image = np.array(depth_image, dtype=np.float32)
+    # Publish the processed image
     processed_depth_image_pub.publish(bridge.cv2_to_imgmsg(depth_image_scaled, "32FC1"))
 
 

@@ -19,37 +19,54 @@ system_path.append(core_package_path)
 import ssf_core
 
 
-retinal_encoded_image_pub = rospy.Publisher("retinal_encoded_image", Image, queue_size=2)
+# ----------------------------------------------------------------
+#                            GLOBALS
+# ----------------------------------------------------------------
+# Algorithm name (from the filename)
+file_name = os_path.splitext(os_path.basename(__file__))[0]
+algorithm_name = file_name.replace("_retinal_encoder", "")
+ssf_core.check_algorithm_name(algorithm_name)
+
+# Input params
+re_input_params = rospy.get_param("/re/input")
+depth_image_topic = re_input_params["depth_image"]["topic"]
+
+# Output params
+re_output_params = rospy.get_param("/re/output")
+retinal_encoded_image_pub = rospy.Publisher(re_output_params["depth_image"]["topic"],
+                                            Image, queue_size=2)
+
+# Other globals
 bridge = CvBridge()
+temporal_filter_frames = deque([])
 
-_temporal_filter_frames = deque([])
-
-# CONFIG - make into config file setting
-depth_image_topic = "processed_depth_image"
+# Algorithm specific globals
+re_algorithm_params = rospy.get_param(algorithm_name + "/re")
+num_temporal_filter_frames = re_algorithm_params["num_temporal_filter_frames"]
+# ________________________________________________________________
 
 
 def temporal_filter(depth_image, num_frames):
-    global _temporal_filter_frames
+    global temporal_filter_frames
 
     num_frames = 3
-    if len(_temporal_filter_frames) != num_frames:
-        _temporal_filter_frames.append(depth_image.copy())
+    if len(temporal_filter_frames) != num_frames:
+        temporal_filter_frames.append(depth_image.copy())
     else:  # ready to apply the temporal filter
         current_frame = depth_image.copy()
         
-        depth_image = ssf_core.temporal_filter(depth_image, _temporal_filter_frames)
+        depth_image = ssf_core.temporal_filter(depth_image, temporal_filter_frames)
 
         # Update the frames
-        _temporal_filter_frames.popleft()
-        _temporal_filter_frames.append(current_frame)
+        temporal_filter_frames.popleft()
+        temporal_filter_frames.append(current_frame)
 
     return depth_image
 
 
-# ------------------------------------------------------------------------------------
-def test_1_retinal_encoder_algorithm(depth_image):
+def retinal_encoder_algorithm(depth_image):
 
-    depth_image = temporal_filter(depth_image, 2)
+    depth_image = temporal_filter(depth_image, num_temporal_filter_frames)
 
     # Quantize the image
     # TODO: When creating the quantization_levels, mimic how human
@@ -57,7 +74,7 @@ def test_1_retinal_encoder_algorithm(depth_image):
     #       OR
     #       Mimic how Auditory Depth attenuation
     quantization_levels = [0.2, 0.35, 0.5, 0.65, 0.8, 1.0, 1.4, 1.8, 2.3, 2.9, 3.6, 4, 5]
-    quantized_depth_image = ssf_core.quantize_depth_image(depth_image, quantization_levels)
+    quantized_depth_image = ssf_core.quantize(depth_image, quantization_levels)
 
     # Get min (i.e. closest) from cluster of pixels
     depth_image_width = len(quantized_depth_image[0])
@@ -107,7 +124,6 @@ def test_1_retinal_encoder_algorithm(depth_image):
             generated_image[row][column] = ssf_core.mode_of_ndarray(ndarray_subsection)
 
     return generated_image
-# ------------------------------------------------------------------------------------
 
 
 def depth_callback(depth_image_imgmsg_format):
@@ -115,10 +131,7 @@ def depth_callback(depth_image_imgmsg_format):
     # NOTE: An OpenCV Image is essentially a numpy array (super cool)
     depth_image_cv2_format = bridge.imgmsg_to_cv2(depth_image_imgmsg_format, desired_encoding="32FC1")
 
-    # --------------------------------------------------------------------------------
-    # TODO: Replace with your algorithm
-    retinal_encoded_image = test_1_retinal_encoder_algorithm(depth_image_cv2_format)
-    # --------------------------------------------------------------------------------
+    retinal_encoded_image = retinal_encoder_algorithm(depth_image_cv2_format)
 
     # convert OpenCV Image to ROS Image message
     retinal_encoded_image_imgmsg_format = bridge.cv2_to_imgmsg(retinal_encoded_image, "32FC1")
@@ -127,21 +140,16 @@ def depth_callback(depth_image_imgmsg_format):
 
 
 def parameter_changed_callback(config):
-    
-    # TODO(for James): check if retinal_encoder_algorithm changed,
-    # if current file name not equal to <algorithm_name>_retinal_encoder.py
-    # call retinal_encoder_algorithm_changed and pass it the new algorithm name
-    rospy.loginfo(
-        "Config set to {int_param}, {double_param}, {str_param}, {bool_param}, {size}".format(**config))
+    pass
 
 
 def main():
-    rospy.init_node("test_1_retinal_encoder")
-    print('NODE RUNNING: test_1_retinal_encoder')
+    rospy.init_node(file_name)
+    print("NODE RUNNING: " + file_name)
 
     # Connect to dynamic_reconfigure server
-    # dynamic_reconfigure.client.Client("dynamic_parameters_server",
-    #                                   timeout=300, config_callback=parameter_changed_callback)
+    dynamic_reconfigure.client.Client("dynamic_parameters_server",
+                                      timeout=300, config_callback=parameter_changed_callback)
 
     # Get depth image from depth camera
     rospy.Subscriber(depth_image_topic, Image, depth_callback)

@@ -1,17 +1,25 @@
 <!--
-	NOTE: 
-	When running dashboard.launch, it is expected that the
+	This is commonly used for rapid prototyping & testing of algorithms 
+ 
+	Running prototyping.launch will run:
 		- default parameters
 		- custom parameters
-	have been loaded, and that the
 		- dynamic parameters server
 		- pre-processor (pp)
 		- retinal encoder (re)
         - sound generator (sg)
-	are all already running.
+	also launching
+		- rqt (with a dashboard layout)
 -->
 
 <launch>
+
+	<!-- 
+		This loads the default parameters, launches the pp, then the launches
+		the dynamic parameters server which in turn launches and manages the
+		current re and sg.
+	-->
+	<include file="$(find ssf_package)/launch/include/default.launch" />
 
 	<!-- Setup rqt for visualization -->
 	<arg name="rqt_config_folder" value="$(find ssf_package)/cfg/rqt"/>
