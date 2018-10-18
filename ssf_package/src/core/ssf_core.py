@@ -390,11 +390,26 @@ def projected_pixel(unit_vector_map,
 # ________________________________________________________________
 
 
-# Creates a RF map where RFs are equally spaced
 def setup_RF_map(image_height,
                  image_width,
                  map_height,
                  map_width):
+    """Creates a RF (Receptive Field) map where RFs are equally spaced.
+    An RF map is a map of (x, y) values, where each (x, y) 2-tuple is a single
+    receptive field (RF)
+
+    Example:
+        3x3 example RF_map: [[(0,0),(0,1),(0,2)],
+                             [(1,0),(1,1),(1,2)],
+                             [(2,0),(2,1),(2,2)]]
+        RF_map[0][2] = (0,2) which is the pixel position on the original image for the top right pixel of the retinal_encoded_image
+
+    Args:
+        image_height (int): The height of the original depth image
+        image_width (int): The width of the original depth image
+        map_height (int): Generally equal to the retinal encoded image height
+        map_width (int): Generally equal to the retinal encoded image width
+    """
 
     # row
     row_increment = (image_height * 1.0) / map_height
@@ -435,8 +450,6 @@ def setup_RF_map(image_height,
         current_RF_map_row = current_RF_map_row + 1
 
     # return RF_map - which is RF pixel positions
-    # Example for 3x3 RF_map: [[(0,0),(0,1),(0,2)],[(1,0),(1,1),(1,2)],[(2,0),(2,1),(2,2)]]
-    #   RF_map[0][2] = (0,2) which is the pixel position on the original image for the top right pixel of the retinal_encoded_image
     return RF_map
 
 
@@ -446,11 +459,14 @@ def sample_pixel_2d_norm_dist(RF,
                               times_to_try,
                               image_height,
                               image_width):
-    """ Generate (x, y) by sampling a 2D normal distribution
-        https://docs.scipy.org/doc/numpy-1.14.0/reference/generated/numpy.random.normal.html
+    """Generate (x, y) by sampling a 2D normal distribution
+       https://docs.scipy.org/doc/numpy-1.14.0/reference/generated/numpy.random.normal.html
 
-        Keyword arguments:
-        RF 
+    Args:
+        times_to_try (int): When the sample falls out of range (i.e. x=-3
+                            isn't in the image), how many times should we resample
+        image_height (int): The height of the original depth image
+        image_width (int): The width of the original depth image
     """
     X = 0
     Y = 1
@@ -502,6 +518,11 @@ def setup_sampled_pixels_map(image_height,
                              image_width,
                              RF_map,
                              num_samples_per_RF):
+    """Setup a map, where each point in the map is an array of sample pixels
+    
+    Example of a single point in the sampled_pixels_map:
+        sampled_pixels_map[row][column] = [(x1,y1), (x2,y2), ...] (i.e. array of sampled pixels)
+    """
 
     RF_map_rows = len(RF_map)
     RF_map_columns = len(RF_map[0])
@@ -528,14 +549,7 @@ def setup_sampled_pixels_map(image_height,
                                               image_width)
                 )
 
-    # RF_map is an array of RFs (receptive fields) and their corrisponding sampled pixels
-    #       Example:
-    # single RF_map_with_positions_of_sampled_pixels = ((x, y),[(x1,y1), (x2,y2), ...])
-    #                       = (position of RF pixel, array of position of sampled pixels)
-    # RF_image is the image generated at the end
-
-    # return 3D array - array[row][column] = [(x1,y1), (x2,y2), ...] (i.e. array of sampled pixels)
-    return sampled_pixels_map  # sampled_pixels_map
+    return sampled_pixels_map 
 
 
 def draw_RF_map(image,

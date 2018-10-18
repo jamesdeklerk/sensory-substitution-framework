@@ -114,8 +114,8 @@ def depthCallback(depth_data):
     # log out the distance to a specific point
     # rospy.loginfo('Distance at 30x, 30y pixel: {}m'.format(depth_image[30][30]))
 
-    # image -> output image
-    # 640 x 480 -> 8 x 8
+    # depth image -> output image
+    # original width x original height -> 8 x 8
     depth_image_width = len(depth_image[0])
     depth_image_height = len(depth_image)
     output_image_width = 8
