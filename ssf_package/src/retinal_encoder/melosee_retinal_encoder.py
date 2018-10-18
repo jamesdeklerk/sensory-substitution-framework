@@ -14,6 +14,15 @@ from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
+# importing the ssf_core module
+import rospkg
+from sys import path as system_path
+from os import path as os_path
+rospack = rospkg.RosPack()
+core_package_path = os_path.join(rospack.get_path('ssf_package'), 'src', 'core')
+system_path.append(core_package_path)
+import ssf_core
+
 
 image_pub = rospy.Publisher("retinal_encoded_image",Image, queue_size=2)
 counter = 0
@@ -23,180 +32,11 @@ sampled_pixels_map = None
 
 # C:\Users\s211114405\Downloads\fw\new.bin
 
-# global vars
-# Load in color image in grayscale
-depth_image = cv2.imread(
-    # 'depth_images/depth_image_d415_Depth.png')
-    # 'depth_images/25_25.png')
-    'depth_images/white_640_480.jpg')
 
+# Depth camera params
+depth_camera_params = rospy.get_param("/depth_camera")
+depth_value_divisor = depth_camera_params["depth_value_divisor"]
 
-# Constants
-POSITION_OF_RF_PIXEL = 0
-POSITIONS_OF_SAMPLED_PIXELS = 1
-X = 0
-Y = 1
-# For a grayscale images, the pixel value is a single number that represents the brightness of the pixel
-# The most common pixel format is the byte image, where this number is stored as an 8-bit integer giving a range of possible values from 0 to 255.
-GRAYSCALE_MAX_VALUE = 255
-
-
-# Creates a RF map where RFs are equally spaced
-def setup_RF_map(image_height, image_width, map_height, map_width):
-
-    # row
-    row_increment = (image_height * 1.0) / map_height
-    current_image_row = row_increment / 2
-
-    # column
-    column_increment = (image_width * 1.0) / map_width
-    current_image_column = column_increment / 2
-
-    RF_map = []
-    current_RF_map_row = 0
-
-    # row
-    while (current_image_row < image_height):
-        # make actual pixel, i.e. no floats
-        row_chosen = math.ceil(current_image_row) - 1
-
-        # new row array
-        RF_map.append([])
-
-        # column
-        while (current_image_column < image_width):
-            # make actual pixel, i.e. no floats
-            column_chosen = math.ceil(current_image_column) - 1
-
-            # create the actual RF map
-            # NOTE: the RF map points are (x, y), NOT (row, column)
-            RF_map[current_RF_map_row].append(
-                (int(column_chosen), int(row_chosen)))
-
-            # next x pixel
-            current_image_column = current_image_column + column_increment
-
-        # go to next row
-        current_image_row = current_image_row + row_increment
-        # reset starting column
-        current_image_column = column_increment / 2
-        current_RF_map_row = current_RF_map_row + 1
-
-    # return RF_map - which is RF pixel positions
-    # Example for 3x3 RF_map: [[(0,0),(0,1),(0,2)],[(1,0),(1,1),(1,2)],[(2,0),(2,1),(2,2)]]
-    #   RF_map[0][2] = (0,2) which is the pixel position on the original image for the top right pixel of the retinal_encoded_image
-    return RF_map
-
-
-def draw_RF_map(image, RF_map, circle_radius, line_width, color):
-    rows = len(RF_map)
-    columns = len(RF_map[0])
-    for row in xrange(rows):
-        for column in xrange(columns):
-            cv2.circle(image, RF_map[row][column],
-                       circle_radius, color, line_width)
-            cv2.imshow('image', image)
-
-
-def sample_pixel_2d_norm_dist(RF, standard_deviation, times_to_try, image_height, image_width):
-    """ Generate (x, y) by sampling a 2D normal distribution
-        https://docs.scipy.org/doc/numpy-1.14.0/reference/generated/numpy.random.normal.html
-
-        Keyword arguments:
-        RF 
-    """
-
-    # get x sample
-    norm_dist_sample_x = np.random.normal(RF[X], standard_deviation)
-    times_tried = 1
-    while True:
-        # if x is in bounds
-        if (norm_dist_sample_x >= 0) and (norm_dist_sample_x < image_width):
-            break
-        else:
-            # x is out of bounds, so generate new sample
-            norm_dist_sample_x = np.random.normal(RF[X], standard_deviation)
-            if times_tried > times_to_try:
-                # if x is out of bounds to the left set it to 0
-                if norm_dist_sample_x < 0:
-                    norm_dist_sample_x = 0
-                # else it is out of bounds to the right, so set it to (image_width - 1)
-                else:
-                    norm_dist_sample_x = image_width - 1
-
-        times_tried = times_tried + 1
-
-    # get y sample
-    norm_dist_sample_y = np.random.normal(RF[Y], standard_deviation)
-    times_tried = 1
-    while True:
-        # if y is in bounds
-        if (norm_dist_sample_y >= 0) and (norm_dist_sample_y < image_height):
-            break
-        else:
-            # y is out of bounds, so generate new sample
-            norm_dist_sample_y = np.random.normal(RF[Y], standard_deviation)
-            if times_tried > times_to_try:
-                # if y is out of bounds to the top set it to 0
-                if norm_dist_sample_y < 0:
-                    norm_dist_sample_y = 0
-                # else it is out of bounds to the bottom, so set it to (image_height - 1)
-                else:
-                    norm_dist_sample_y = image_height - 1
-
-        times_tried = times_tried + 1
-
-    return (int(norm_dist_sample_x), int(norm_dist_sample_y))
-
-def setup_sampled_pixels_map(image_height, image_width, RF_map, num_samples_per_RF):
-
-    RF_map_rows = len(RF_map)
-    RF_map_columns = len(RF_map[0])
-
-    standard_deviation = 20
-    times_to_try = 10
-
-    sampled_pixels_map = []
-
-    for row in xrange(RF_map_rows):
-        # add a new row
-        sampled_pixels_map.append([])
-        for column in xrange(RF_map_columns):
-            sampled_pixels_map[row].append([])
-            for sample in xrange(num_samples_per_RF):
-                # sample from 2D normal dist, but make sure it's within the bounds
-                sampled_pixels_map[row][column].append(
-                    sample_pixel_2d_norm_dist(
-                        RF_map[row][column], standard_deviation,
-                        times_to_try, image_height, image_width
-                    )
-                )
-
-    # RF_map is an array of RFs (receptive fields) and their corrisponding sampled pixels
-    #       Example:
-    # single RF_map_with_positions_of_sampled_pixels = ((x, y),[(x1,y1), (x2,y2), ...])
-    #                       = (position of RF pixel, array of position of sampled pixels)
-    # RF_image is the image generated at the end
-
-    # return 3D array - array[row][column] = [(x1,y1), (x2,y2), ...] (i.e. array of sampled pixels)
-    return sampled_pixels_map  # sampled_pixels_map
-
-def draw_sampled_pixels_map(image, sampled_pixels_map, RF_map, circle_radius, line_width, circle_color, line_color):
-    rows = len(sampled_pixels_map)
-    columns = len(sampled_pixels_map[0])
-    num_samples_per_RF = len(sampled_pixels_map[0][0])
-    for row in xrange(rows):
-        for column in xrange(columns):
-            for sample in xrange(num_samples_per_RF):
-                # draw line for each sample
-                cv2.line(image, sampled_pixels_map[row][column][sample], RF_map[row][column], line_color, 1)
-
-                # draw circle for each sample
-                cv2.circle(image, sampled_pixels_map[row][column][sample],
-                        circle_radius, circle_color, line_width)
-
-    # cv2.imshow('image', image)
-    return image
 
 # The activity act_i of the neuron i (a set of p pixels with luminance l_ik for the receptive field RF_i),
 # is normalized into the interval [0, 1] using the following function:
@@ -222,6 +62,7 @@ def calcNeuronActivity(positions_of_sampled_pixels, image):
     # return (1 / (GRAYSCALE_MAX_VALUE * p)) * sum
     # Returns neuron activity
     return sum / number_of_pixels
+
 
 # TODO: make sure youre doing the x and y correctly
 def run_melosee(depth_image, sampled_pixels_map):
@@ -254,8 +95,6 @@ def run_melosee(depth_image, sampled_pixels_map):
             RF_depth = 0
             if not count == 0:
                 RF_depth = total / count
-                # if realsense
-                RF_depth = RF_depth / 1000.0
             else:
                 RF_depth = DEFAULT_FAR_DEPTH
 
@@ -267,7 +106,6 @@ def run_melosee(depth_image, sampled_pixels_map):
     output_image = np.array(output_image_array, dtype=np.float32)
     
     return output_image
-
 
 
 def depthCallback(depth_data):
@@ -287,11 +125,31 @@ def depthCallback(depth_data):
     global RF_map
     global sampled_pixels_map
     if sampled_pixels_map == None:
-        RF_map = setup_RF_map(depth_image_height, depth_image_width, output_image_height, output_image_width)
+        RF_map = ssf_core.setup_RF_map(depth_image_height, depth_image_width, output_image_height, output_image_width)
         num_samples_per_RF = 10
-        sampled_pixels_map = setup_sampled_pixels_map(depth_image_height, depth_image_width, RF_map, num_samples_per_RF)
+        sampled_pixels_map = ssf_core.setup_sampled_pixels_map(depth_image_height, depth_image_width, RF_map, num_samples_per_RF)
+    
+    # Since this uses the raw camera image (camera/depth/image_rect_raw).
+    # This step converts the depth image pixel values to meters,
+    # since meters is the standard used in this framework 
+    depth_image = depth_image / depth_value_divisor
     
     output_image = run_melosee(depth_image, sampled_pixels_map)
+    # quantization_levels = [0.2, 0.35, 0.5, 0.65, 0.8, 1.0, 1.4, 1.8, 2.3, 2.9, 3.6, 4, 5]
+    # output_image = ssf_core.quantize(output_image, quantization_levels)
+    # depth_image = depth_image / 1000.0
+    # depth_image = ssf_core.draw_RF_map(depth_image,
+    #                                    RF_map,
+    #                                    2,
+    #                                    2,
+    #                                    (0, 0, 0))
+    # output_image = ssf_core.draw_sampled_pixels_map(depth_image,
+    #                                                 sampled_pixels_map,
+    #                                                 RF_map,
+    #                                                 1,
+    #                                                 2,
+    #                                                 (0, 0, 0),
+    #                                                 (0, 0, 0))
     
     image_pub.publish(bridge.cv2_to_imgmsg(output_image, "32FC1"))
 
