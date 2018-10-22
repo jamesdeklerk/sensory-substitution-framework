@@ -22,6 +22,11 @@ from openal.loaders import load_wav_file
 sg_input_params = rospy.get_param("/sg/input")
 retinal_encoded_image_topic = sg_input_params["retinal_encoded_image"]["topic"]
 
+# Depth camera params
+depth_camera_params = rospy.get_param("/depth_camera")
+depth_camera_min_depth = depth_camera_params["min_depth"]
+depth_camera_max_depth = depth_camera_params["max_depth"]
+
 bridge = CvBridge()
 
 # Audio globals
@@ -100,8 +105,6 @@ def callback(retinal_encoded_data):
 
         # Setup sound sources for each "receptive field"
         # Create array of sound sources
-        x_pos = 0
-        y_pos = 0
         for y in xrange(retinal_encoded_image_height):
             soundSources.append([])
             for x in xrange(retinal_encoded_image_width):
@@ -139,33 +142,41 @@ def callback(retinal_encoded_data):
         soundSourcesSetup = True
 
     # TODO: update positions of sound sources
-    x_scale_factor = 1
-    y_scale_factor = 0  # set to zero, since MeloSee doesn't use depth
-    z_scale_factor = 7 * 4
-    min_z = 0.4  # for kinect
-    max_z = 5.4  # for kinect
-    for y in xrange(retinal_encoded_image_height):
-        for x in xrange(retinal_encoded_image_width):
-            x_pos = (x - (retinal_encoded_image_width / 2)) * \
-                x_scale_factor          # left is negative
-            y_pos = (-((y + 0.5) - (retinal_encoded_image_height / 2))) * \
-                y_scale_factor          # up is positive
+    x_scale_factor = 0.2
+    y_scale_factor = 0.0  # set to zero, since MeloSee doesn't use depth
+    z_power_scale_factor = 3.0
+
+    gain_scaled = 1.0 / (retinal_encoded_image_width * retinal_encoded_image_height)
+
+    x_pos = 0
+    y_pos = 0
+    for row in xrange(retinal_encoded_image_height):
+        for column in xrange(retinal_encoded_image_width):
+            # center x
+            x_pos = column - ((retinal_encoded_image_width - 1.0) / 2.0)
+            # scale x
+            x_pos = x_pos * x_scale_factor  # right is positive
+
+            # center y
+            y_pos = row - ((retinal_encoded_image_height - 1.0) / 2.0)
+            # flip to correct orientation
+            y_pos = -y_pos
+            # scale y
+            y_pos = y_pos * y_scale_factor  # up is positive
+            
             # distance
-            z_pos = retinal_encoded_image[y][x]
+            z_pos = retinal_encoded_image[row][column]
 
-            # TODO: Dropoff function
-            if z_pos > (max_z - 1):
-                diff = z_pos - (max_z - 1)
-                z_pos = (max_z - 1) + (((1 + diff)**4) - 1)
+            if math.isnan(z_pos) or                     \
+               (z_pos == 0.0) or                        \
+               (z_pos >= depth_camera_max_depth):
+                soundSources[row][column].gain = 0.0
             else:
-                z_pos = (z_pos - min_z)
+                soundSources[row][column].gain = gain_scaled
 
-            if math.isnan(z_pos):
-                z_pos = 100000        # basically too far to hear
+            z_pos = depth_camera_min_depth + ((z_pos - depth_camera_min_depth)**(z_power_scale_factor * 1.0))
 
-            z_pos = z_pos * z_scale_factor
-
-            soundSources[y][x].position = [x_pos, y_pos, z_pos]
+            soundSources[row][column].position = [x_pos, y_pos, -z_pos]
 
     soundsink.update()
 

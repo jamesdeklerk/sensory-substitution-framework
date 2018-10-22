@@ -14,7 +14,7 @@ def create_sound(frequency, length):
     # Calculate the sine wave
     samples = np.arange(sps * duration_s)
     waveform = np.sin(2.0 * np.pi * samples * frequency / sps)
-    waveform_quiet = waveform * 0.9
+    waveform_quiet = waveform * 1.0
 
     # Write the wav file
     waveform_integers = np.int16(waveform_quiet * 32767)
