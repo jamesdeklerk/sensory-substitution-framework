@@ -36,13 +36,13 @@ re_output_params = rospy.get_param("/re/output")
 retinal_encoded_image_pub = rospy.Publisher(re_output_params["depth_image"]["topic"],
                                             Image, queue_size=2)
 
-# Other globals
-bridge = CvBridge()
-temporal_filter_frames = deque([])
-
 # Algorithm specific globals
 re_algorithm_params = rospy.get_param(algorithm_name + "/re")
 num_temporal_filter_frames = re_algorithm_params["num_temporal_filter_frames"]
+
+# Other globals
+bridge = CvBridge()
+temporal_filter_frames = deque([])
 # ________________________________________________________________
 
 

@@ -34,13 +34,13 @@ re_output_params = rospy.get_param("/re/output")
 retinal_encoded_image_pub = rospy.Publisher(re_output_params["depth_image"]["topic"],
                                             Image, queue_size=2)
 
-# Other globals
-bridge = CvBridge()
-
 # Algorithm specific globals
 re_algorithm_params = rospy.get_param(algorithm_name + "/re")
 # TODO: Replace with your algorithm params
 depth_image_scaled_width = re_algorithm_params["depth_image_scaled_width"]
+
+# Other globals
+bridge = CvBridge()
 # ________________________________________________________________
 
 

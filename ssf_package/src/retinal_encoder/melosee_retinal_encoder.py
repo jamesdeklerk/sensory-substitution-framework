@@ -43,6 +43,8 @@ depth_value_divisor = depth_camera_params["depth_value_divisor"]
 #           act_i = (1/(255 * p))*sum   # where sum the sum from 1 to p of the pixel luminance values
 # TODO: convert output to be in [0, 1] 
 def calcNeuronActivity(positions_of_sampled_pixels, image):
+    X = 0
+    Y = 1
 
     # Example input:
     #   RF_neighboring_pixels = [(1,2), (3,4), (5,6)]

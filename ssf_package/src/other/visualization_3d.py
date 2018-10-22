@@ -233,7 +233,7 @@ class Window(QtGui.QWidget):
                         current_speaker = speakers[row][column]
                         window.transform_speaker(current_speaker,
                                                  projected_pixel[0] * INVERT,
-                                                 projected_pixel[1] * INVERT,
+                                                 projected_pixel[1],
                                                  projected_pixel[2],
                                                  0.3 + (depth * 0.2))
 

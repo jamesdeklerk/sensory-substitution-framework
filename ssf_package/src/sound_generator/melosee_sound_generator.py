@@ -140,7 +140,7 @@ def callback(retinal_encoded_data):
 
     # TODO: update positions of sound sources
     x_scale_factor = 1
-    y_scale_factor = 0
+    y_scale_factor = 0  # set to zero, since MeloSee doesn't use depth
     z_scale_factor = 7 * 4
     min_z = 0.4  # for kinect
     max_z = 5.4  # for kinect
