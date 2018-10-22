@@ -9,25 +9,16 @@ def create_sound(frequency, length):
     # Properties of the wav
     sps = 44100    # Samples per second - DON'T change
 
-    carrier_hz = frequency * 1.0
-    modulator_hz = 0.25
-    ac = 1.0 # carrier amplitude
-    ka = 0.25 # amplitude sensitivity
     duration_s = length * 1.0
 
     # Calculate the sine wave
-    t_samples = np.arange(sps * duration_s)
-    carrier = np.sin(2 * np.pi * carrier_hz * t_samples / sps)
-
-    # Modulate the carrier
-    modulator = np.sin(2 * np.pi * modulator_hz * t_samples / sps)
-    envelope = ac * (1.0 + ka * modulator)
-    modulated = envelope * carrier
+    samples = np.arange(sps * duration_s)
+    waveform = np.sin(2.0 * np.pi * samples * frequency / sps)
+    waveform_quiet = waveform * 0.9
 
     # Write the wav file
-    modulated *= 0.03
-    modulated_ints = np.int16(modulated * 32767)
-    write(generate_sound_file_name(frequency), sps, modulated_ints)
+    waveform_integers = np.int16(waveform_quiet * 32767)
+    write(generate_sound_file_name(frequency), sps, waveform_integers)
 
 def create_all_sounds():
     # C-major, the scale of just intonation would be: C=1/1 D=9/8 E=5/4 F= 4/3 G=3/2 A=5/3 B=15/8 C=2/1
