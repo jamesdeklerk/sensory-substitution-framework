@@ -43,6 +43,8 @@ depth_camera_max_depth = depth_camera_params["max_depth"]
 
 # Algorithm specific globals
 re_algorithm_params = rospy.get_param(algorithm_name + "/re")
+retinal_encoded_image_width = re_algorithm_params["output"]["retinal_encoded_image"]["width"]
+retinal_encoded_image_height = re_algorithm_params["output"]["retinal_encoded_image"]["height"]
 num_temporal_filter_frames = re_algorithm_params["num_temporal_filter_frames"]
 num_quantization_levels = re_algorithm_params["num_quantization_levels"]
 
@@ -86,14 +88,11 @@ def retinal_encoder_algorithm(depth_image):
     depth_image_width = len(quantized_depth_image[0])
     depth_image_height = len(quantized_depth_image)
 
-    generated_image_width = 8
-    generated_image_height = 8
-
-    step_size_row = depth_image_height / (generated_image_height * 1.0)
-    step_size_column = depth_image_width / (generated_image_width * 1.0)
+    step_size_row = depth_image_height / (retinal_encoded_image_height * 1.0)
+    step_size_column = depth_image_width / (retinal_encoded_image_width * 1.0)
 
     # NOTE: Uncomment to draw column sections on image
-    # for column in xrange(generated_image_width):
+    # for column in xrange(retinal_encoded_image_width):
     #     for row in xrange(depth_image_height):
 
     #         start_col_pixel = int(math.floor(column * step_size_column))
@@ -104,7 +103,7 @@ def retinal_encoder_algorithm(depth_image):
 
     # NOTE: Uncomment to draw row sections on image
     # for column in xrange(depth_image_width):
-    #     for row in xrange(generated_image_height):
+    #     for row in xrange(retinal_encoded_image_height):
 
     #         start_row_pixel = int(math.floor(row * step_size_row))
     #         quantized_depth_image[start_row_pixel][column] = 0
@@ -112,9 +111,9 @@ def retinal_encoder_algorithm(depth_image):
     #         end_row_pixel = int(math.floor((row * step_size_row) + (step_size_row - 1)))
     #         quantized_depth_image[end_row_pixel][column] = 100
 
-    generated_image = np.zeros((generated_image_height, generated_image_width), dtype=np.float32)
-    for column in xrange(generated_image_width):
-        for row in xrange(generated_image_height):
+    generated_image = np.zeros((retinal_encoded_image_height, retinal_encoded_image_width), dtype=np.float32)
+    for column in xrange(retinal_encoded_image_width):
+        for row in xrange(retinal_encoded_image_height):
 
             start_col_pixel = int(math.floor(column * step_size_column))
             end_col_pixel = int(math.floor((column * step_size_column) + (step_size_column - 1)))

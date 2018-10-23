@@ -167,6 +167,7 @@ def callback(retinal_encoded_data):
             # distance
             z_pos = retinal_encoded_image[row][column]
 
+            # Gain settings, dependant on z
             if math.isnan(z_pos) or                     \
                (z_pos == 0.0) or                        \
                (z_pos >= depth_camera_max_depth):
@@ -174,6 +175,7 @@ def callback(retinal_encoded_data):
             else:
                 soundSources[row][column].gain = gain_scaled
 
+            # NB: z scaling is done after gain settings
             z_pos = depth_camera_min_depth + ((z_pos - depth_camera_min_depth)**(z_power_scale_factor * 1.0))
 
             soundSources[row][column].position = [x_pos, y_pos, -z_pos]

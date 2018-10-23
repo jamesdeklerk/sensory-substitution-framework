@@ -109,7 +109,7 @@ def setup(retinal_encoded_image_cv2_format):
     listener.orientation = (0, 0, -1, 0, 1, 0)
 
     # Load the audio
-    sample_audio = load_wav_file(sound_folder_location + "396.wav")
+    sample_audio = load_wav_file(sound_folder_location + "large_water_sample.wav")
 
     # Setting up the sound sources for each receptive field (i.e. each
     # pixel in the retinal encoded image)
@@ -144,13 +144,24 @@ def sound_generator_algorithm(retinal_encoded_image_cv2_format):
     # the y-axis, with up being positive; and from ones eyes going into the 
     # monitor represents the positive z-axis.
 
-    column = 7
-    row = 7
+    column = 6
+    row = 1
+    column_2 = 0
+    row_2 = 0
     depth = retinal_encoded_image_cv2_format[row][column]
 
     if not is_setup:
         setup(retinal_encoded_image_cv2_format)
         soundsink.play(sound_sources[row][column])
+        # soundsink.play(sound_sources[row_2][column_2])
+
+    if np.isnan(depth) or                   \
+       (depth == 0.0) or                    \
+       (depth >= depth_camera_max_depth):
+        sound_sources[row][column].gain = 0.0
+        print("DEPTH!!!!!!!!!!!!: {}".format(depth))
+    else:
+        sound_sources[row][column].gain = 1.0
 
     projected_min_depth = ssf_core.projected_pixel(unit_vector_map,
                                                    column,
@@ -160,30 +171,31 @@ def sound_generator_algorithm(retinal_encoded_image_cv2_format):
     # scales anything beyond the projected_min_depth,
     # scaling it along the ray
     z_power_scale = 2
+    # NOTE: only the depth is scaled, and then x, y and z are projected
+    #       according to that depth.
     depth = projected_min_depth + ((depth - projected_min_depth)**(z_power_scale * 1.0))
     projected_pixel = ssf_core.projected_pixel(unit_vector_map,
                                                column,
                                                row,
                                                depth)
     
-    print("original: x: {}, y:{}, z:{}".format(column, row, depth))
-    print("depth: x: {}, y:{}, z:{}".format(projected_pixel[0],
-                                            projected_pixel[1],
-                                            projected_pixel[2]))
+    # print("original: x: {}, y:{}, z:{}".format(column, row, depth))
+    # print("depth: x: {}, y:{}, z:{}".format(projected_pixel[0],
+    #                                         projected_pixel[1],
+    #                                         projected_pixel[2]))
     sound_sources[row][column].position = [projected_pixel[0],
                                     projected_pixel[1],
                                     projected_pixel[2]]
 
     
-    print("min depth: {}, projected min depth: {}".format(depth_camera_min_depth, projected_min_depth))
+    # print("min depth: {}, projected min depth: {}".format(depth_camera_min_depth, projected_min_depth))
 
-    sound_sources[row][column].position = [0, 0, -1]
     min_pitch = 0.2
     max_pitch = 1.8
-    sound_sources[row][column].pitch = 1.0
+    sound_sources[row][column].pitch = 1.8
     # gain is a range between 0.0 and 1.0
-    print("SS Gain: {}".format(sound_sources[row][column].gain))
-    sound_sources[row][column].gain = 1.0
+    # print("SS Gain: {}".format(sound_sources[row][column].gain))
+    # sound_sources[row][column].gain = 1.0
 
     soundsink.update()
 # ____________________________________________________________________________________
