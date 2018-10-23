@@ -13,6 +13,8 @@ import warnings
 import cv2
 import numpy as np
 from scipy import stats
+from scipy.signal import blackmanharris
+import scipy.io.wavfile as wav
 
 
 def check_algorithm_name(algorithm_name):
@@ -597,3 +599,59 @@ def draw_sampled_pixels_map(image,
                         circle_radius, circle_color, line_width)
 
     return image
+
+
+def parabolic(f, x):
+    """Quadratic interpolation for estimating the true position of an
+    inter-sample maximum when nearby samples are known.
+
+    From: https://gist.github.com/endolith/255291
+   
+    f is a vector and x is an index for that vector.
+   
+    Returns (vx, vy), the coordinates of the vertex of a parabola that goes
+    through point x and its two neighbors.
+   
+    Example:
+    Defining a vector f with a local maximum at index 3 (= 6), find local
+    maximum if points 2, 3, and 4 actually defined a parabola.
+   
+    In [3]: f = [2, 3, 1, 6, 4, 2, 3, 1]
+   
+    In [4]: parabolic(f, np.argmax(f))
+    Out[4]: (3.2142857142857144, 6.1607142857142856)
+   
+    """
+    xv = 1/2. * (f[x-1] - f[x+1]) / (f[x-1] - 2 * f[x] + f[x+1]) + x
+    yv = f[x] - 1/4. * (f[x-1] - f[x+1]) * (xv - x)
+    return (xv, yv)
+
+
+def freq_from_fft(sample_rate, signal):
+    """Estimate frequency from peak of FFT
+
+    From: https://gist.github.com/endolith/255291
+
+    Usage:
+        import scipy.io.wavfile as wav
+        sample_rate, signal = wav.read("440.wav")
+        print freq_from_fft(sample_rate, signal)
+
+    Pro: Accurate, usually even more so than zero crossing counter
+         (1000.000004 Hz for 1000 Hz, for instance). Due to parabolic
+         interpolation being a very good fit for windowed log FFT peaks?
+    Con: Doesn't find the right value if harmonics are stronger than
+         fundamental, which is common. Better method would try to be smarter
+         about identifying the fundamental, like template matching using the
+         "two-way mismatch" (TWM) algorithm.
+    """
+    # Compute Fourier transform of windowed signal
+    windowed = signal * blackmanharris(len(signal))
+    f = np.fft.rfft(windowed)
+
+    # Find the peak and interpolate to get a more accurate peak
+    i = np.argmax(abs(f))  # Just use this for less-accurate, naive version
+    true_i = parabolic(np.log(abs(f)), i)[0]
+
+    # Convert to equivalent frequency
+    return sample_rate * true_i / len(windowed)

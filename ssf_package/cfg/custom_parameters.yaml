@@ -10,8 +10,8 @@
 # Setting the defaults for the dynamic parameters server
 # NOTE: this overrides the defaults set in the Parameters.cfg file
 dynamic_parameters_server:
-  re_algorithm: "melosee"  # Retinal Encoder (re)
-  sg_algorithm: "melosee"  # Sound Generator (sg)
+  re_algorithm: "algorithm_2"  # Retinal Encoder (re)
+  sg_algorithm: "algorithm_2"  # Sound Generator (sg)
 
 
 # Example

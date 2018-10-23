@@ -109,7 +109,7 @@ def setup(retinal_encoded_image_cv2_format):
     listener.orientation = (0, 0, -1, 0, 1, 0)
 
     # Load the audio
-    sample_audio = load_wav_file(sound_folder_location + "sample_audio.wav")
+    sample_audio = load_wav_file(sound_folder_location + "396.wav")
 
     # Setting up the sound sources for each receptive field (i.e. each
     # pixel in the retinal encoded image)
@@ -177,10 +177,10 @@ def sound_generator_algorithm(retinal_encoded_image_cv2_format):
     
     print("min depth: {}, projected min depth: {}".format(depth_camera_min_depth, projected_min_depth))
 
-
+    sound_sources[row][column].position = [0, 0, -1]
     min_pitch = 0.2
     max_pitch = 1.8
-    sound_sources[row][column].pitch = 0.1
+    sound_sources[row][column].pitch = 1.0
     # gain is a range between 0.0 and 1.0
     print("SS Gain: {}".format(sound_sources[row][column].gain))
     sound_sources[row][column].gain = 1.0
