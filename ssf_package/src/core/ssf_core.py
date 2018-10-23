@@ -121,6 +121,24 @@ def k_means(depth_image, num_clusters, min_depth, max_depth):
     return depth_image
 
 
+def generate_quantization_levels(num_quantization_levels, min_depth, max_depth):
+    """Generate quantization_levels, taking into account the number of
+    quantization levels wanted, as well as the min and max depth
+
+    NOTE: The quantization_levels are rounded to 2 decimal places
+    """
+    
+    step_size = ((2.0 * (max_depth - min_depth)) / (num_quantization_levels * 1.0)) / (num_quantization_levels - 1.0)
+
+    quantization_levels = []
+    current_quantization_value = min_depth
+    for i in xrange(num_quantization_levels):
+        current_quantization_value = current_quantization_value + (i * step_size)
+        quantization_levels.append(round(current_quantization_value, 2))
+
+    return quantization_levels
+
+
 def quantize(depth_image,
              quantization_levels):
     """Quantize a given depth image.

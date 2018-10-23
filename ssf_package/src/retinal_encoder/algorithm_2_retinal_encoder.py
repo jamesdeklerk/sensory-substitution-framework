@@ -36,13 +36,20 @@ re_output_params = rospy.get_param("/re/output")
 retinal_encoded_image_pub = rospy.Publisher(re_output_params["depth_image"]["topic"],
                                             Image, queue_size=2)
 
+# Depth camera params
+depth_camera_params = rospy.get_param("/depth_camera")
+depth_camera_min_depth = depth_camera_params["min_depth"]
+depth_camera_max_depth = depth_camera_params["max_depth"]
+
 # Algorithm specific globals
 re_algorithm_params = rospy.get_param(algorithm_name + "/re")
 num_temporal_filter_frames = re_algorithm_params["num_temporal_filter_frames"]
+num_quantization_levels = re_algorithm_params["num_quantization_levels"]
 
 # Other globals
 bridge = CvBridge()
 temporal_filter_frames = deque([])
+quantization_levels = None
 # ________________________________________________________________
 
 
@@ -73,7 +80,6 @@ def retinal_encoder_algorithm(depth_image):
     #       depth perception attenuates
     #       OR
     #       Mimic how Auditory Depth attenuation
-    quantization_levels = [0.2, 0.35, 0.5, 0.65, 0.8, 1.0, 1.4, 1.8, 2.3, 2.9, 3.6, 4, 5]
     quantized_depth_image = ssf_core.quantize(depth_image, quantization_levels)
 
     # Get min (i.e. closest) from cluster of pixels
@@ -150,6 +156,11 @@ def main():
     # Connect to dynamic_reconfigure server
     dynamic_reconfigure.client.Client("dynamic_parameters_server",
                                       timeout=300, config_callback=parameter_changed_callback)
+
+    global quantization_levels
+    quantization_levels = ssf_core.generate_quantization_levels(num_quantization_levels,
+                                                                depth_camera_min_depth,
+                                                                depth_camera_max_depth)
 
     # Get depth image from depth camera
     rospy.Subscriber(depth_image_topic, Image, depth_callback)
