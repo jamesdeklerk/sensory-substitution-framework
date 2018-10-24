@@ -182,7 +182,6 @@ def sound_generator_algorithm(retinal_encoded_image_cv2_format):
                 elif row == 2:
                     sound_sources[row][column].pitch = 0.5
 
-
             projected_min_depth = ssf_core.projected_pixel(unit_vector_map,
                                                            column,
                                                            row,
@@ -190,7 +189,7 @@ def sound_generator_algorithm(retinal_encoded_image_cv2_format):
     
             # scales anything beyond the projected_min_depth,
             # scaling it along the ray
-            z_power_scale = 2
+            z_power_scale = 3.0
             # NOTE: only the depth is scaled, and then x, y and z are projected
             #       according to that depth.
             depth = projected_min_depth + ((depth - projected_min_depth)**(z_power_scale * 1.0))

@@ -3,7 +3,7 @@
 
 depth_camera:
   min_depth: 0.2 # in meters
-  max_depth: 5.0 # in meters
+  max_depth: 3.0 # in meters
   h_fov: 91.2  # original FoV (i.e. ignoring crop)
   v_fov: 65.5  # original FoV (i.e. ignoring crop)
   # For cropping, set the % of dead zone to remove (set to 0 for no cropping)
