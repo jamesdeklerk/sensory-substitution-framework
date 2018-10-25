@@ -345,7 +345,7 @@
               "keys": {
                 "max_range": {
                   "type": "repr",
-                  "repr": "5.0"
+                  "repr": "3.0"
                 },
                 "rotate": {
                   "type": "repr",

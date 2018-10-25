@@ -68,7 +68,7 @@ def calcNeuronActivity(positions_of_sampled_pixels, image):
 
 # TODO: make sure youre doing the x and y correctly
 def run_melosee(depth_image, sampled_pixels_map):
-    DEFAULT_FAR_DEPTH = 100
+    DEFAULT_FAR_DEPTH = 100.0  # in meters
 
     output_image_width = len(sampled_pixels_map[0]) # columns
     output_image_height = len(sampled_pixels_map) # rows

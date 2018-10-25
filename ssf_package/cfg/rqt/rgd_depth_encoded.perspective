@@ -68,7 +68,7 @@
               "keys": {
                 "max_range": {
                   "type": "repr",
-                  "repr": "5.0"
+                  "repr": "3.0"
                 },
                 "rotate": {
                   "type": "repr",
@@ -80,7 +80,7 @@
                 },
                 "mouse_pub_topic": {
                   "type": "repr",
-                  "repr": "u'/camera/depth/image_rect_raw_mouse_left'"
+                  "repr": "u'/processed_depth_image_mouse_left'"
                 },
                 "num_gridlines": {
                   "type": "repr",
@@ -100,7 +100,7 @@
                 },
                 "topic": {
                   "type": "repr",
-                  "repr": "u'/camera/depth/image_rect_raw'"
+                  "repr": "u'/processed_depth_image'"
                 },
                 "publish_click_location": {
                   "type": "repr",
@@ -135,7 +135,7 @@
               "keys": {
                 "max_range": {
                   "type": "repr",
-                  "repr": "5.0"
+                  "repr": "3.0"
                 },
                 "rotate": {
                   "type": "repr",
@@ -202,7 +202,7 @@
               "keys": {
                 "max_range": {
                   "type": "repr",
-                  "repr": "5.0"
+                  "repr": "3.0"
                 },
                 "rotate": {
                   "type": "repr",

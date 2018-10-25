@@ -52,6 +52,8 @@ num_quantization_levels = re_algorithm_params["num_quantization_levels"]
 bridge = CvBridge()
 temporal_filter_frames = deque([])
 quantization_levels = None
+RF_map = None
+sampled_pixels_map = None
 # ________________________________________________________________
 
 
@@ -73,9 +75,72 @@ def temporal_filter(depth_image, num_frames):
     return depth_image
 
 
+def run_melosee(depth_image, sampled_pixels_map):
+    DEFAULT_FAR_DEPTH = 100.0  # in meters
+
+    output_image_width = len(sampled_pixels_map[0]) # columns
+    output_image_height = len(sampled_pixels_map) # rows
+    num_samples_per_RF = len(sampled_pixels_map[0][0])
+
+    output_image_array = []
+
+    for row in xrange(output_image_height):
+        # add new row
+        output_image_array.append([])
+        for column in xrange(output_image_width):
+
+            total = 0.0
+            count = 0.0
+
+            # calc average 
+            for sample in xrange(num_samples_per_RF):
+                cur_sample = sampled_pixels_map[row][column][sample]
+                x = cur_sample[0]
+                y = cur_sample[1]
+                cur_sample_depth = depth_image[y][x]
+                if not np.isnan(cur_sample_depth):
+                    total = total + cur_sample_depth
+                    count = count + 1.0
+
+            RF_depth = 0
+            if not count == 0:
+                RF_depth = total / count
+            else:
+                RF_depth = DEFAULT_FAR_DEPTH
+
+            # add depth info to appropriate column
+            output_image_array[row].append(RF_depth)
+
+    # Create image from the image array
+    # output_image_array = [[depth_image[30][30],depth_image[30][610]],[depth_image[450][30],depth_image[450][610]]]
+    output_image = np.array(output_image_array, dtype=np.float32)
+    
+    return output_image
+
+
 def retinal_encoder_algorithm(depth_image):
 
+    depth_image_width = len(depth_image[0])
+    depth_image_height = len(depth_image)
+
+    # setup sampled_pixels_map if it wasn't setup
+    global RF_map
+    global sampled_pixels_map
+    if sampled_pixels_map == None:
+        RF_map = ssf_core.setup_RF_map(depth_image_height,
+                                       depth_image_width,
+                                       retinal_encoded_image_height,
+                                       retinal_encoded_image_width)
+        num_samples_per_RF = 10
+        sampled_pixels_map = ssf_core.setup_sampled_pixels_map(depth_image_height,
+                                                               depth_image_width,
+                                                               RF_map,
+                                                               num_samples_per_RF)
+
+    # Apply temporal_filter
     depth_image = temporal_filter(depth_image, num_temporal_filter_frames)
+
+    # depth_image = run_melosee(depth_image, sampled_pixels_map)
 
     # Quantize the image
     # TODO: When creating the quantization_levels, mimic how human
@@ -83,10 +148,6 @@ def retinal_encoder_algorithm(depth_image):
     #       OR
     #       Mimic how Auditory Depth attenuation
     quantized_depth_image = ssf_core.quantize(depth_image, quantization_levels)
-
-    # Get min (i.e. closest) from cluster of pixels
-    depth_image_width = len(quantized_depth_image[0])
-    depth_image_height = len(quantized_depth_image)
 
     step_size_row = depth_image_height / (retinal_encoded_image_height * 1.0)
     step_size_column = depth_image_width / (retinal_encoded_image_width * 1.0)

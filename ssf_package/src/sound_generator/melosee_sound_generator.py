@@ -143,13 +143,11 @@ def callback(retinal_encoded_data):
 
     # TODO: update positions of sound sources
     x_scale_factor = 0.2
-    y_scale_factor = 0.0  # set to zero, since MeloSee doesn't use depth
     z_power_scale_factor = 3.0
 
     gain_scaled = 1.0 / (retinal_encoded_image_width * retinal_encoded_image_height)
 
     x_pos = 0
-    y_pos = 0
     for row in xrange(retinal_encoded_image_height):
         for column in xrange(retinal_encoded_image_width):
             # center x
@@ -157,12 +155,8 @@ def callback(retinal_encoded_data):
             # scale x
             x_pos = x_pos * x_scale_factor  # right is positive
 
-            # center y
-            y_pos = row - ((retinal_encoded_image_height - 1.0) / 2.0)
-            # flip to correct orientation
-            y_pos = -y_pos
-            # scale y
-            y_pos = y_pos * y_scale_factor  # up is positive
+            # set to zero, since MeloSee doesn't use depth
+            y_pos = 0.0
             
             # distance
             z_pos = retinal_encoded_image[row][column]
@@ -175,10 +169,10 @@ def callback(retinal_encoded_data):
             else:
                 soundSources[row][column].gain = gain_scaled
 
-            # NB: z scaling is done after gain settings
-            z_pos = depth_camera_min_depth + ((z_pos - depth_camera_min_depth)**(z_power_scale_factor * 1.0))
+                # NB: z scaling is done after gain settings
+                z_pos = depth_camera_min_depth + ((z_pos - depth_camera_min_depth)**(z_power_scale_factor * 1.0))
 
-            soundSources[row][column].position = [x_pos, y_pos, -z_pos]
+                soundSources[row][column].position = [x_pos, y_pos, -z_pos]
 
     soundsink.update()
 
