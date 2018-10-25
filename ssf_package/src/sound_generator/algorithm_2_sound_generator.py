@@ -176,30 +176,37 @@ def sound_generator_algorithm(retinal_encoded_image_cv2_format):
                 #       440Hz tone is set to 2.0, the tone played would be
                 #       2 * 440Hz = 880Hz
                 if row == 0:
-                    sound_sources[row][column].pitch = 1.5
+                    sound_sources[row][column].pitch = 1.7
                 elif row == 1:
-                    sound_sources[row][column].pitch = 1.0
+                    sound_sources[row][column].pitch = 1.3
                 elif row == 2:
-                    sound_sources[row][column].pitch = 0.5
+                    sound_sources[row][column].pitch = 1.0
+                elif row == 3:
+                    sound_sources[row][column].pitch = 0.7
+                elif row == 4:
+                    sound_sources[row][column].pitch = 0.3
 
                 projected_min_depth = ssf_core.projected_pixel(unit_vector_map,
                                                             column,
                                                             row,
                                                             depth_camera_min_depth)[2]
         
+                x_scale = 2.5
+                y_scale = 1.0
+                z_scale = 1.3
                 # scales anything beyond the projected_min_depth,
                 # scaling it along the ray
-                z_power_scale = 3.0
+                z_power_scale = 2.0
                 # NOTE: only the depth is scaled, and then x, y and z are projected
                 #       according to that depth.
-                depth = projected_min_depth + ((depth - projected_min_depth)**(z_power_scale * 1.0))
+                depth = (projected_min_depth * z_scale) + (((depth - projected_min_depth) * z_scale)**(z_power_scale * 1.0))
                 projected_pixel = ssf_core.projected_pixel(unit_vector_map,
                                                            column,
                                                            row,
                                                            depth)
         
                 # Update the sound sources position based on the projected pixel
-                sound_sources[row][column].position = [projected_pixel[0],
+                sound_sources[row][column].position = [projected_pixel[0] * x_scale,
                                                        projected_pixel[1],
                                                        -projected_pixel[2]]
 
