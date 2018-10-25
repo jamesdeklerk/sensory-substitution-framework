@@ -126,7 +126,7 @@ def retinal_encoder_algorithm(depth_image):
                                                        end_col_pixel,
                                                        start_row_pixel,
                                                        end_row_pixel)
-            generated_image[row][column] = ssf_core.mode_of_ndarray(ndarray_subsection)
+            generated_image[row][column] = ssf_core.min_in_ndarray(ndarray_subsection)
 
     return generated_image
 

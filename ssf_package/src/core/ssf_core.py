@@ -181,13 +181,15 @@ def min_in_ndarray(ndarray):
     return np.nanmin(ndarray)
 
 
-def mode_of_ndarray(ndarray):
-    """Calculate the mode of a given ndarray.
+# # Commented out, since it causes a strange lag in processing when there
+# # are too many NaN values in the ndarray
+# def mode_of_ndarray(ndarray):
+#     """Calculate the mode of a given ndarray.
 
-    The mode is the most frequently occuring number found in a given set
-    """
-    flat_ndarray = ndarray.flatten()
-    return stats.mode(flat_ndarray)[0][0]
+#     The mode is the most frequently occuring number found in a given set
+#     """
+#     flat_ndarray = ndarray.flatten()
+#     return stats.mode(flat_ndarray)[0][0]
 
 
 def temporal_filter(depth_image, filter_frames):
