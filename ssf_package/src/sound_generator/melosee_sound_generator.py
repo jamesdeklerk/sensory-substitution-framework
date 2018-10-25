@@ -142,8 +142,8 @@ def callback(retinal_encoded_data):
         soundSourcesSetup = True
 
     # TODO: update positions of sound sources
-    x_scale_factor = 0.2
-    z_power_scale_factor = 3.0
+    x_scale_factor = 0.5
+    z_power_scale_factor = 2.0
 
     gain_scaled = 1.0 / (retinal_encoded_image_width * retinal_encoded_image_height)
 
