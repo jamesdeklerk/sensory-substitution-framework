@@ -1,0 +1,30 @@
+# This file is where you set the default parameters for your custom
+# algorithms.
+# 
+# It is also where the defaults for the
+#   - re_algorithm
+#   - sg_algorithm
+# are set.
+
+
+# Setting the defaults for the dynamic parameters server
+# NOTE: this overrides the defaults set in the Parameters.cfg file
+dynamic_parameters_server:
+  re_algorithm: "algorithm_2"  # Retinal Encoder (re)
+  sg_algorithm: "algorithm_2"  # Sound Generator (sg)
+
+
+# Example
+template:
+  re:
+    depth_image_scaled_width: 96
+
+
+algorithm_2:
+  re:
+    output:
+      retinal_encoded_image:
+        width: 10
+        height: 5
+    num_temporal_filter_frames: 2
+    num_quantization_levels: 12

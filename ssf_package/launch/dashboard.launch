@@ -1,0 +1,20 @@
+<!--
+	NOTE: 
+	When running dashboard.launch, it is expected that the
+		- default parameters
+		- custom parameters
+	have been loaded, and that the
+		- dynamic parameters server
+		- pre-processor (pp)
+		- retinal encoder (re)
+        - sound generator (sg)
+	are all already running.
+-->
+
+<launch>
+
+	<!-- Setup rqt for visualization -->
+	<arg name="rqt_config_folder" value="$(find ssf_package)/cfg/rqt"/>
+	<node name="rqt_gui" pkg="rqt_gui" type="rqt_gui" args='--perspective-file "$(arg rqt_config_folder)/dashboard.perspective"'/>
+
+</launch>
