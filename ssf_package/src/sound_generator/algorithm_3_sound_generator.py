@@ -112,11 +112,18 @@ def setup(retinal_encoded_image_cv2_format):
 
     # Load the audio
     large_water_sample = load_wav_file(sound_folder_location + "large_water_sample.wav")
+    water_lapping_wind_sample = load_wav_file(sound_folder_location + "water_lapping_wind_sample.wav")
+    top = load_wav_file(sound_folder_location + "top.wav")
+    top_middle = load_wav_file(sound_folder_location + "top_middle.wav")
+    middle = load_wav_file(sound_folder_location + "middle.wav")
+    bottom_middle = load_wav_file(sound_folder_location + "bottom_middle.wav")
+    bottom = load_wav_file(sound_folder_location + "bottom.wav")
     beep_short = load_wav_file(sound_folder_location + "beep_short.wav")
 
     # To avoid clipping, the gain for each sound source needs to be
     # scaled down relative to the number of sound emitters
     gain_scaled = 1.0 / (retinal_encoded_image_width * retinal_encoded_image_height)
+    gain_scaled = gain_scaled + 0.02
 
     # Setting up the sound sources for each receptive field (i.e. each
     # pixel in the retinal encoded image)
@@ -131,7 +138,16 @@ def setup(retinal_encoded_image_cv2_format):
             
             # Queueing appends the sound to the source for 
             # processing and playback
-            sound_sources[row][column].queue(large_water_sample)
+            if row == 0:
+                sound_sources[row][column].queue(top)
+            elif row == 1:
+                sound_sources[row][column].queue(top_middle)
+            elif row == 2:
+                sound_sources[row][column].queue(middle)
+            elif row == 3:
+                sound_sources[row][column].queue(water_lapping_wind_sample)
+            elif row == 4:
+                sound_sources[row][column].queue(large_water_sample)
 
             # Scale gain
             sound_sources[row][column].gain = gain_scaled
@@ -172,14 +188,13 @@ def sound_generator_algorithm(retinal_encoded_image_cv2_format):
         setup(retinal_encoded_image_cv2_format)
 
     # Calculate 
-    max_pitch = 1.7
+    max_pitch = 1.5
     min_pitch = 0.3
 
     beep_distance = 0.4
     left_beep = False
-    middle_beep = False
     right_beep = False
-    
+
     for row in xrange(retinal_encoded_image_height):
         for column in xrange(retinal_encoded_image_width):
             depth = retinal_encoded_image_cv2_format[row][column]
@@ -192,10 +207,8 @@ def sound_generator_algorithm(retinal_encoded_image_cv2_format):
                 if (depth < beep_distance):
                     if (column <= 4):
                         left_beep = True
-                        print("left beep: {}m".format(depth))
                     if (column >= 5):
                         right_beep = True
-                        print("right beep: {}m".format(depth))
 
                 # -----------------
 
