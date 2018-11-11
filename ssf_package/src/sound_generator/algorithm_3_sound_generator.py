@@ -191,7 +191,7 @@ def sound_generator_algorithm(retinal_encoded_image_cv2_format):
     max_pitch = 1.5
     min_pitch = 0.3
 
-    beep_distance = 0.4
+    beep_distance = 0.3
     left_beep = False
     right_beep = False
 
@@ -207,8 +207,10 @@ def sound_generator_algorithm(retinal_encoded_image_cv2_format):
                 if (depth < beep_distance):
                     if (column <= 4):
                         left_beep = True
+                        print("left: {}m".format(depth))
                     if (column >= 5):
                         right_beep = True
+                        print("right: {}m".format(depth))
 
                 # -----------------
 
@@ -260,12 +262,12 @@ def sound_generator_algorithm(retinal_encoded_image_cv2_format):
 
     if left_beep:
         alert_sound_sources[0].gain = 0.5
-        alert_sound_sources[0].position = [-1, 0, -1]
+        alert_sound_sources[0].position = [-2, 0, -1]
     else:
         alert_sound_sources[0].gain = 0.0
     if right_beep:
         alert_sound_sources[1].gain = 0.5
-        alert_sound_sources[1].position = [1, 0, -1]
+        alert_sound_sources[1].position = [2, 0, -1]
     else:
         alert_sound_sources[1].gain = 0.0
 
