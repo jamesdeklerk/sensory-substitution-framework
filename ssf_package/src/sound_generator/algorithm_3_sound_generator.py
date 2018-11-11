@@ -63,6 +63,7 @@ soundsink = SoundSink()  # Opening output device
 sound_folder_location = None
 is_setup = False
 sound_sources = []
+alert_sound_sources = []
 gain_scaled = 1.0
 # ________________________________________________________________
 
@@ -80,7 +81,7 @@ def pixel_position_scaling(pixel, x_scale, y_scale, z_scale, min_projected_z):
 
 
 def setup(retinal_encoded_image_cv2_format):
-    global sound_folder_location, is_setup, sound_sources, unit_vector_map, gain_scaled
+    global sound_folder_location, is_setup, sound_sources, unit_vector_map, gain_scaled, alert_sound_sources
 
     retinal_encoded_image_width = len(retinal_encoded_image_cv2_format[0])
     retinal_encoded_image_height = len(retinal_encoded_image_cv2_format)
@@ -111,6 +112,7 @@ def setup(retinal_encoded_image_cv2_format):
 
     # Load the audio
     large_water_sample = load_wav_file(sound_folder_location + "large_water_sample.wav")
+    beep_short = load_wav_file(sound_folder_location + "beep_short.wav")
 
     # To avoid clipping, the gain for each sound source needs to be
     # scaled down relative to the number of sound emitters
@@ -137,6 +139,19 @@ def setup(retinal_encoded_image_cv2_format):
             # Play the sound
             soundsink.play(sound_sources[row][column])
 
+    # Setting up the sound sources for the minimum distance alert
+    # 0 is left, 1 is right
+    alert_sound_sources.append(SoundSource(position=[0, 0, 0]))
+    alert_sound_sources[0].looping = True
+    alert_sound_sources[0].queue(beep_short)
+    alert_sound_sources[0].gain = 0.0
+    soundsink.play(alert_sound_sources[0])
+    alert_sound_sources.append(SoundSource(position=[0, 0, 0]))
+    alert_sound_sources[1].looping = True
+    alert_sound_sources[1].queue(beep_short)
+    alert_sound_sources[1].gain = 0.0
+    soundsink.play(alert_sound_sources[1])
+
     soundsink.update()
 
     is_setup = True
@@ -155,6 +170,15 @@ def sound_generator_algorithm(retinal_encoded_image_cv2_format):
 
     if not is_setup:
         setup(retinal_encoded_image_cv2_format)
+
+    # Calculate 
+    max_pitch = 1.7
+    min_pitch = 0.3
+
+    beep_distance = 0.4
+    left_beep = False
+    middle_beep = False
+    right_beep = False
     
     for row in xrange(retinal_encoded_image_height):
         for column in xrange(retinal_encoded_image_width):
@@ -165,24 +189,37 @@ def sound_generator_algorithm(retinal_encoded_image_cv2_format):
                (depth >= depth_camera_max_depth):
                 sound_sources[row][column].gain = 0.0
             else:
+                if (depth < beep_distance):
+                    if (column <= 4):
+                        left_beep = True
+                        print("left beep: {}m".format(depth))
+                    if (column >= 5):
+                        right_beep = True
+                        print("right beep: {}m".format(depth))
+
+                # -----------------
+
                 sound_sources[row][column].gain = gain_scaled
 
-                # If the sound isn't muted, also update its pitch
-                # dependent on its y value (i.e. row)
+                # Calculate pitch based on distance
+                current_depth_percentage = (depth - depth_camera_min_depth) / ((depth_camera_max_depth - depth_camera_min_depth) * 1.0)
+                # Example:
+                #   If the values are set to:
+                #       max_pitch = 1.7
+                #       min_pitch = 0.3
+                #   Then:
+                #       If current_depth_percentage = 0.0, pitch_based_on_distance = 1.7
+                #       If current_depth_percentage = 0.5, pitch_based_on_distance = 1.0
+                #       If current_depth_percentage = 1.0, pitch_based_on_distance = 0.3
+                pitch_based_on_distance = max_pitch - ((max_pitch - min_pitch) * current_depth_percentage * 1.0)
+
+                # If the sound isn't muted, update its pitch
+                # dependent on the current depth 
                 # NOTE: Setting the pitch stretches or compresses the sound
                 #       by the given value. For example, if the pitch of a
                 #       440Hz tone is set to 2.0, the tone played would be
                 #       2 * 440Hz = 880Hz
-                if row == 0:
-                    sound_sources[row][column].pitch = 1.7
-                elif row == 1:
-                    sound_sources[row][column].pitch = 1.3
-                elif row == 2:
-                    sound_sources[row][column].pitch = 1.0
-                elif row == 3:
-                    sound_sources[row][column].pitch = 0.7
-                elif row == 4:
-                    sound_sources[row][column].pitch = 0.3
+                sound_sources[row][column].pitch = pitch_based_on_distance
 
                 projected_min_depth = ssf_core.projected_pixel(unit_vector_map,
                                                             column,
@@ -207,6 +244,17 @@ def sound_generator_algorithm(retinal_encoded_image_cv2_format):
                 sound_sources[row][column].position = [projected_pixel[0] * x_scale,
                                                        projected_pixel[1],
                                                        -projected_pixel[2]]
+
+    if left_beep:
+        alert_sound_sources[0].gain = 0.5
+        alert_sound_sources[0].position = [-1, 0, -1]
+    else:
+        alert_sound_sources[0].gain = 0.0
+    if right_beep:
+        alert_sound_sources[1].gain = 0.5
+        alert_sound_sources[1].position = [1, 0, -1]
+    else:
+        alert_sound_sources[1].gain = 0.0
 
     soundsink.update()
 # ____________________________________________________________________________________
