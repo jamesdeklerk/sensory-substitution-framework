@@ -131,6 +131,13 @@ rosrun rqt_reconfigure rqt_reconfigure
 ---
 
 ## Common Issues
+* For the software to run correctly, please ensure the following is installed:
+    * <code>pip install opencv-python</code>
+    * <code>pip install numpy</code>
+    * <code>pip install matplotlib</code>
+    * <code>sudo apt-get install libalut-dev</code>
+    * <code>sudo apt-get install libopenal-dev</code>
+    * <code>sudo apt-get install python-scipy</code>
 * Make sure all .py and .cfg files are executable, using
     * For .py files use
         ```bash
@@ -153,13 +160,6 @@ rosrun rqt_reconfigure rqt_reconfigure
         - Uses Python 2.7 ?
         - etc.
     - Maybe upload VMware machine?
-- For the software to run correctly, please install the following:
-    - <code>pip install opencv-python</code>
-    - <code>pip install numpy</code>
-    - <code>pip install matplotlib</code>
-    - <code>sudo apt-get install libalut-dev</code>
-    - <code>sudo apt-get install libopenal-dev</code>
-    - <code>sudo apt-get install python-scipy</code>
 - Convert .bag file to video (.mp4) for uploading to YouTube
 
 ---
