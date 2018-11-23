@@ -155,7 +155,7 @@ def callback(retinal_encoded_data):
             # scale x
             x_pos = x_pos * x_scale_factor  # right is positive
 
-            # set to zero, since MeloSee doesn't use depth
+            # set to zero, since MeloSee doesn't use height
             y_pos = 0.0
             
             # distance
