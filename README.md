@@ -151,15 +151,3 @@ rosrun rqt_reconfigure rqt_reconfigure
     * Make sure the project is built (see [Building the project](#building_the_project))
     * Make sure you have sourced the files (see [Running the project locally](#running_the_project_locally))
 ---
-
-## TODO for README
-- Mention when creating custom retinal encoder, the <name> should be <name>_retinal_encoder.py
-- Upload .bag files & update [this](#playback) with the link
-- Ubuntu + ROS setup using VMware Workstation Player Setup
-    - Notes:
-        - Uses Python 2.7 ?
-        - etc.
-    - Maybe upload VMware machine?
-- Convert .bag file to video (.mp4) for uploading to YouTube
-
----
